@@ -18,7 +18,7 @@ async function main() {
   const greeter = await Greeter.deploy("Hello, Hardhat!");
 
   const RSU = await hre.ethers.getContractFactory("RSU");
-  const rsu = await RSU.deploy("RSU!!");
+  const rsu = await RSU.deploy();
 
   await greeter.deployed();
   await rsu.deployed();
