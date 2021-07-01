@@ -72,8 +72,8 @@
       ]
     },
     "C:\\Users\\HARISH\\Documents\\CODE\\blockchain\\vehicular-trust-management\\contracts\\RSU.sol": {
-      "lastModificationDate": 1624872416284,
-      "contentHash": "d0f16c09bfdc077b76dfce6fc781e051",
+      "lastModificationDate": 1625128030495,
+      "contentHash": "56d6a1f6c52984c741da24a82f83fa09",
       "sourceName": "contracts/RSU.sol",
       "solcConfig": {
         "version": "0.8.4",
@@ -97,9 +97,7 @@
           }
         }
       },
-      "imports": [
-        "hardhat/console.sol"
-      ],
+      "imports": [],
       "versionPragmas": [
         "^0.8.4"
       ],
