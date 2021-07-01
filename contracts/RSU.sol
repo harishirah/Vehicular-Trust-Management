@@ -4,7 +4,7 @@ pragma solidity ^0.8.4;
 
 /** 
  * @title RSU
- * @dev Implements RSU  process along with vote delegation
+ * @dev Implements RSU  process along with Trust Value Updation
  */
 contract RSU {
     address admin;
@@ -13,27 +13,17 @@ contract RSU {
         int trustValue;
         bool isRevoked;
     }
-    struct ratingByVehicle {
-        uint vehicleId;
-        int rating;
-    }
-    struct Message {
-        ratingByVehicle[] raters;
-        int positiveRatings;
-        int negativeRatings;
-    }
     struct ratingRequest {
 		uint vId;
   	    int rating;
     }
     uint numberOfMessages;
+    Vehicle[] vehicles;
     mapping(string => uint) messageIds;
     mapping(address => bool) vehicleRegistered;
     mapping(address => uint) vIds;
-    Vehicle[] vehicles;
-    Message[] currentMessageRatings;
-    
-    
+	
+	/* Modifiers */
     modifier onlyAdmin() {
         require(msg.sender == admin, "Not Tranport Admin!!");
         _;
@@ -58,8 +48,8 @@ contract RSU {
     
     constructor() {
         admin = msg.sender;
-				/* vehicle[0] is dummy as any invalid message points to index = 0 */
-				vehicles.push(Vehicle(msg.sender, 0, true));
+		/* vehicle[0] is dummy as any invalid message points to index = 0 */
+		vehicles.push(Vehicle(msg.sender, 0, true));
         messageIds["traffic jam"] = 1;
         messageIds["accident"] = 2;
         messageIds["construction work"] = 3;
@@ -69,11 +59,27 @@ contract RSU {
         numberOfMessages = 7;
     }
     
+	/* Get Functions (No Gas Fees) */
     function getMessageId(string memory message) public view returns (uint) {
         return messageIds[message];
     }  
     
-    function sendRating(ratingRequest[] memory inputRatings, string memory message) public isValidVehicle(msg.sender) isValidMessage(message) {
+    function getTrustValue(address _senderAddress) public view isValidVehicle(_senderAddress) returns (int) {
+        require(vehicleRegistered[msg.sender] == true || msg.sender == admin, "Sender is not a valid Identity!!");
+        return vehicles[vIds[_senderAddress]].trustValue;
+    }
+
+	function getVehicleId(address _addr) public view isValidVehicle(_addr) returns (uint) {
+		return vIds[_addr];
+	}
+		
+	function getVehicleInfo(address _senderAddress) public view isValidVehicle(_senderAddress) returns (address, int, bool) {				
+		Vehicle memory tmp = vehicles[vIds[_senderAddress]];
+		return (tmp.addr, tmp.trustValue, tmp.isRevoked);
+	}
+
+	/* Transactions (Require Gas Fees) */
+    function sendRatings(ratingRequest[] memory inputRatings, string memory message) public isValidVehicle(msg.sender) isValidMessage(message) {
         int pos = 0; int neg = 0; 
         for(uint i = 0; i < inputRatings.length; i++) {
             // check if the message sender is a valid vehicle
@@ -100,24 +106,11 @@ contract RSU {
 		}
     } 
     
+	// Registering a new Vehicle (only by Transport Administrator)
     function addVehicle(address _addr) public onlyAdmin {
         require(vehicleRegistered[_addr] == false, "Vehicle Already Registered!!");
         vehicleRegistered[_addr] = true;
-        vehicles.push(Vehicle(_addr, 100, false));
+        vehicles.push(Vehicle(_addr, 10, false));
         vIds[_addr] = vehicles.length - 1;
     }
-    
-    function getTrustValue(address _senderAddress) public view isValidVehicle(_senderAddress) returns (int) {
-        require(vehicleRegistered[msg.sender] == true || msg.sender == admin, "Sender is not a valid Identity!!");
-        return vehicles[vIds[_senderAddress]].trustValue;
-    }
-
-	function getVehicleId(address _addr) public view isValidVehicle(_addr) returns (uint) {
-		return vIds[_addr];
-	}
-		
-	function getVehicleInfo(address _senderAddress) public view isValidVehicle(_senderAddress) returns (address, int, bool) {				
-		Vehicle memory tmp = vehicles[vIds[_senderAddress]];
-		return (tmp.addr, tmp.trustValue, tmp.isRevoked);
-	}
 }
