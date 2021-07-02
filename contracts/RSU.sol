@@ -19,6 +19,7 @@ contract RSU {
     }
     uint numberOfMessages;
     Vehicle[] vehicles;
+    string[] msgs;
     mapping(string => uint) messageIds;
     mapping(address => bool) vehicleRegistered;
     mapping(address => uint) vIds;
@@ -51,11 +52,17 @@ contract RSU {
 		/* vehicle[0] is dummy as any invalid message points to index = 0 */
 		vehicles.push(Vehicle(msg.sender, 0, true));
         messageIds["traffic jam"] = 1;
+        msgs.push("traffic jam");
         messageIds["accident"] = 2;
+        msgs.push("accident");
         messageIds["construction work"] = 3;
+        msgs.push("construction work");
         messageIds["road damaged"] = 4;
+        msgs.push("road damaged");
         messageIds["safe"] = 5;
+        msgs.push("safe");
         messageIds["red light"] = 6;
+        msgs.push("red light");
         numberOfMessages = 7;
     }
     
@@ -112,5 +119,12 @@ contract RSU {
         vehicleRegistered[_addr] = true;
         vehicles.push(Vehicle(_addr, 10, false));
         vIds[_addr] = vehicles.length - 1;
+    }
+    
+    function addMsg(string memory message) public onlyAdmin {
+        require(messageIds[message]==0,"Message Already in DataBase");
+        messageIds[message]=numberOfMessages;
+        msgs.push(message);
+        numberOfMessages+=1;
     }
 }
