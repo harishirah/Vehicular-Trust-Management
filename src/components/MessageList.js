@@ -55,7 +55,9 @@ function MessageList({ rsuAddress }) {
                 value={index}
                 onChange={(e) => setIndex(e.target.value)}
             />
-            <Button onClick={getMessage}>Get Messages</Button>
+            <Button onClick={getMessage} variant="contained">
+                Get Messages
+            </Button>
             {message && (
                 <Typography>
                     Message No. {index} : {message}

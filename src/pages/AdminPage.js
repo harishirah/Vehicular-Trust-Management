@@ -11,6 +11,8 @@ import MessageList from "../components/MessageList";
 function AdminPage() {
     const [address, setAddress] = useState();
     const [message, setMessage] = useState();
+    const [getInfoAddr, setGetInfoAddr] = useState();
+    const [vInfo, setVInfo] = useState([]);
 
     const requestAccount = async () => {
         await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -40,6 +42,19 @@ function AdminPage() {
         console.log("Message Added");
     };
 
+    const getVehicleInfo = async () => {
+        if (typeof window.ethereum === undefined) return;
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const contract = new ethers.Contract(rsuAddress, RSU.abi, provider);
+        try {
+            const data = await contract.getVehicleInfo(getInfoAddr);
+            if (data) setVInfo(data);
+            console.log("Data : ", data);
+        } catch (err) {
+            console.log("Error : ", err);
+        }
+    };
+
     return (
         <Container
             style={{
@@ -47,7 +62,7 @@ function AdminPage() {
                 justifyContent: "center",
             }}
         >
-            <div>
+            <div style={{ margin: "50px 0" }}>
                 <TextField
                     style={{ width: "60%" }}
                     label="Vehicle Address"
@@ -63,7 +78,7 @@ function AdminPage() {
                     Add Vehicle
                 </Button>
             </div>
-            <div>
+            <div style={{ margin: "50px 0" }}>
                 <TextField
                     style={{ width: "60%" }}
                     label="New Message"
@@ -79,7 +94,33 @@ function AdminPage() {
                     Add Message
                 </Button>
             </div>
-            <MessageList rsuAddress={rsuAddress} />
+            <div style={{ margin: "50px 0" }}>
+                <TextField
+                    style={{ width: "60%" }}
+                    label="Get Vehicle Info"
+                    helperText="Enter Vehicle Address.."
+                    value={getInfoAddr}
+                    onChange={(e) => setGetInfoAddr(e.target.value)}
+                />
+                <Button
+                    onClick={getVehicleInfo}
+                    variant="contained"
+                    color="primary"
+                >
+                    Get Info
+                </Button>
+                {vInfo && vInfo.length && (
+                    <div style={{ border: "1px solid gray", padding: 20 }}>
+                        <p style={{ fontWeight: "bold" }}>Vehicle Info</p>
+                        <p>Vehicle Address : "{vInfo[0]}"</p>
+                        <p>Trust Value : {vInfo[1].toNumber()}</p>
+                        <p>Is Revoked? : {vInfo[2] ? "Yes" : "No"}</p>
+                    </div>
+                )}
+            </div>
+            <div style={{ margin: "50px 0" }}>
+                <MessageList rsuAddress={rsuAddress} />
+            </div>
         </Container>
     );
 }
