@@ -17,9 +17,9 @@ contract RSU {
 		uint vId;
   	    int rating;
     }
-    uint numberOfMessages;
+    uint public numberOfMessages;
     Vehicle[] vehicles;
-    string[] msgs;
+    string[] public msgs;
     mapping(string => uint) messageIds;
     mapping(address => bool) vehicleRegistered;
     mapping(address => uint) vIds;
