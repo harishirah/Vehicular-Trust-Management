@@ -6,16 +6,11 @@ import Button from "@material-ui/core/Button";
 
 import { rsuAddress } from "../constants";
 import RSU from "../artifacts/contracts/RSU.sol/RSU.json";
+import SelectRatings from "../components/SelectRatings";
 
 function VehiclesPage() {
-    const [address, setAddress] = useState();
     const [trustValue, setTrustValue] = useState();
     const [trustAddr, setTrustAddr] = useState();
-    const [message, setMessage] = useState();
-
-    const requestAccount = async () => {
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-    };
 
     const fetchTrustValue = async () => {
         if (typeof window.ethereum === undefined) return;
@@ -52,8 +47,9 @@ function VehiclesPage() {
                 >
                     Get Trust Value
                 </Button>
+                {trustValue && <div>{trustValue}</div>}
             </div>
-            {trustValue && <div>{trustValue}</div>}
+            <SelectRatings />
         </Container>
     );
 }

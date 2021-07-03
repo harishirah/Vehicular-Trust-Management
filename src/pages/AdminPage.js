@@ -1,18 +1,24 @@
 import Container from "@material-ui/core/Container";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { ethers } from "ethers";
 
 import { rsuAddress } from "../constants";
+import MessagePopup from "../components/MessagePopup";
 import RSU from "../artifacts/contracts/RSU.sol/RSU.json";
 import MessageList from "../components/MessageList";
+import { MainContext } from "../context";
 
 function AdminPage() {
     const [address, setAddress] = useState();
     const [message, setMessage] = useState();
+    const [severity, setSeverity] = useState();
+    const [popupMessage, setPopupMessage] = useState();
+    const [open, setOpen] = useState(false);
     const [getInfoAddr, setGetInfoAddr] = useState();
     const [vInfo, setVInfo] = useState([]);
+    const { addVehicle, addMessage } = useContext(MainContext);
 
     const requestAccount = async () => {
         await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -27,10 +33,11 @@ function AdminPage() {
         const contract = new ethers.Contract(rsuAddress, RSU.abi, signer);
         const transaction = await contract.addVehicle(address);
         await transaction.wait();
+        addVehicle(address);
         console.log("Vehicle Added");
     };
 
-    const addMessage = async () => {
+    const addNewMessage = async () => {
         if (!message) return;
         if (typeof window.ethereum === undefined) return;
         await requestAccount();
@@ -39,6 +46,7 @@ function AdminPage() {
         const contract = new ethers.Contract(rsuAddress, RSU.abi, signer);
         const transaction = await contract.addMsg(message);
         await transaction.wait();
+        addMessage(message);
         console.log("Message Added");
     };
 
@@ -51,6 +59,9 @@ function AdminPage() {
             if (data) setVInfo(data);
             console.log("Data : ", data);
         } catch (err) {
+            setSeverity("error");
+            setPopupMessage(err.message);
+            setOpen(true);
             console.log("Error : ", err);
         }
     };
@@ -62,6 +73,14 @@ function AdminPage() {
                 justifyContent: "center",
             }}
         >
+            <MessagePopup
+                open={open}
+                setOpen={setOpen}
+                message={popupMessage}
+                severity={severity}
+                loading={false}
+            />
+            ;
             <div style={{ margin: "50px 0" }}>
                 <TextField
                     style={{ width: "60%" }}
@@ -87,7 +106,7 @@ function AdminPage() {
                     onChange={(e) => setMessage(e.target.value)}
                 />
                 <Button
-                    onClick={addMessage}
+                    onClick={addNewMessage}
                     variant="contained"
                     color="primary"
                 >

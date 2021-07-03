@@ -1,12 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { ethers } from "ethers";
 import { makeStyles } from "@material-ui/core/styles";
-import List from "@material-ui/core/List";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import RSU from "../artifacts/contracts/RSU.sol/RSU.json";
 

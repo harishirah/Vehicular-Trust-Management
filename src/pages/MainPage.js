@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
@@ -6,15 +6,11 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
-import { ethers } from "ethers";
 import "../App.css";
 
-import RSU from "../artifacts/contracts/RSU.sol/RSU.json";
 import RsuPage from "./RsuPage";
 import VehiclesPage from "./VehiclesPage";
 import AdminPage from "./AdminPage";
-
-const rsuAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
 
 function TabPanel(props) {
     const { children, value, index, ...other } = props;
@@ -69,40 +65,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function MainPage() {
-    const [adminName, setAdminName] = useState();
     const classes = useStyles();
     const [value, setValue] = React.useState(0);
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
-    };
-    const requestAccount = async () => {
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-    };
-
-    const fetchAdminName = async () => {
-        if (typeof window.ethereum === undefined) return;
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const contract = new ethers.Contract(rsuAddress, RSU.abi, provider);
-        try {
-            const data = await contract.getAdmin();
-            if (data) setAdminName(data);
-            console.log("Data : ", data);
-        } catch (err) {
-            console.log("Error : ", err);
-        }
-    };
-
-    const setAdmin = async () => {
-        if (!adminName) return;
-        if (typeof window.ethereum === undefined) return;
-        await requestAccount();
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const contract = new ethers.Contract(rsuAddress, RSU.abi, signer);
-        const transaction = await contract.setAdminName(adminName);
-        await transaction.wait();
-        fetchAdminName();
     };
 
     return (
