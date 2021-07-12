@@ -52,7 +52,9 @@ export default function SelectRatings() {
     const { vehicles, messages } = useContext(MainContext);
     const [checked, setChecked] = React.useState([]);
     const [message, setMessage] = React.useState("");
-    const [left, setLeft] = React.useState(vehicles);
+    const [left, setLeft] = React.useState(
+        vehicles.map((vehicle) => vehicle.vId)
+    );
     const [right, setRight] = React.useState([]);
 
     const leftChecked = intersection(checked, left);
@@ -101,13 +103,14 @@ export default function SelectRatings() {
         if (!message) return;
         let arr = [];
         left.forEach((item) => {
-            let curr = { vId: item, rating: 1 };
+            let curr = [item, 1];
             arr.push(curr);
         });
         right.forEach((item) => {
-            let curr = { vId: item, rating: -1 };
+            let curr = [item, -1];
             arr.push(curr);
         });
+        console.log(arr);
         if (arr.length <= 0) return;
         if (typeof window.ethereum === undefined) return;
         await requestAccount();
@@ -144,7 +147,7 @@ export default function SelectRatings() {
                             </ListItemIcon>
                             <ListItemText
                                 id={labelId}
-                                primary={`Vehicle ${value + 1}`}
+                                primary={`Vehicle ${value}`}
                             />
                         </ListItem>
                     );
@@ -177,7 +180,7 @@ export default function SelectRatings() {
                     ))}
                 </Select>
             </FormControl>
-            <Grid item center alignItems="center">
+            <Grid item alignItems="center">
                 <h3 style={{ textAlign: "center" }}>Rate +1</h3>
                 {customList(left)}
             </Grid>

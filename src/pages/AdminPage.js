@@ -33,7 +33,8 @@ function AdminPage() {
         const contract = new ethers.Contract(rsuAddress, RSU.abi, signer);
         const transaction = await contract.addVehicle(address);
         await transaction.wait();
-        addVehicle(address);
+        const vId = await contract.getVehicleId(address);
+        addVehicle({ vId: vId.toNumber(), address });
         console.log("Vehicle Added");
     };
 

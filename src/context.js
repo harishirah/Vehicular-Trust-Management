@@ -1,4 +1,5 @@
 import React, { useReducer, createContext } from "react";
+import { rsuAddress } from "./constants";
 
 const initialState = {
     vehicles: [],
@@ -12,19 +13,33 @@ const initialState = {
     ],
 };
 
+if (localStorage.getItem("rsuVehicles")) {
+    const data = JSON.parse(localStorage.getItem("rsuVehicles"));
+    if (data.rsuAddress !== rsuAddress) {
+        localStorage.removeItem("rsuVehicles");
+    } else {
+        initialState.vehicles = data.vehicles;
+    }
+}
+
 const MainContext = createContext(initialState);
 
 const reducer = (state, action) => {
     switch (action.type) {
         case "ADD_VEHICLE":
+            const newVehicles = [
+                ...state.vehicles.filter(
+                    (vehicle) => vehicle !== action.payload
+                ),
+                action.payload,
+            ];
+            localStorage.setItem(
+                "rsuVehicles",
+                JSON.stringify({ rsuAddress, vehicles: newVehicles })
+            );
             return {
                 ...state,
-                vehicles: [
-                    ...state.vehicles.filter(
-                        (vehicle) => vehicle !== action.payload
-                    ),
-                    action.payload,
-                ],
+                vehicles: newVehicles,
             };
         case "ADD_MESSAGE":
             return {

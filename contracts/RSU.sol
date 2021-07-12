@@ -106,9 +106,8 @@ contract RSU {
 			// calculate trust value offsets and update the trust value.
 			if(inputRatings[i].rating == 0) continue;
 			uint vId = inputRatings[i].vId;
-			int trustValueOffset = (pos / (pos + neg)) * pos - (neg / (neg + pos)) * neg;
-			trustValueOffset = trustValueOffset / (pos + neg);
-			vehicles[vId].trustValue += trustValueOffset;
+			int trustValueOffset = pos - neg;
+			vehicles[vId].trustValue += inputRatings[i].rating * trustValueOffset;
 			if(vehicles[vId].trustValue <= 0) vehicles[vId].isRevoked = true;
 		}
     } 
