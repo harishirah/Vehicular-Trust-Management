@@ -46,6 +46,8 @@ contract RSU {
         require(messageIds[message] < numberOfMessages, "Message not verified by concerned authority");
         _;
     }
+
+    event broadcast(address from, string location , string message);
     
     constructor() {
         admin = msg.sender;
@@ -125,5 +127,10 @@ contract RSU {
         messageIds[message]=numberOfMessages;
         msgs.push(message);
         numberOfMessages+=1;
+    }
+
+    function broadCast(string memory message, string memory location) public isValidVehicle(msg.sender) isValidMessage(message) returns (int){
+        emit broadcast(msg.sender,location,message);
+        return 1;
     }
 }
