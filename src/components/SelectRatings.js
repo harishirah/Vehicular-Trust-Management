@@ -60,10 +60,6 @@ export default function SelectRatings() {
     const leftChecked = intersection(checked, left);
     const rightChecked = intersection(checked, right);
 
-    const requestAccount = async () => {
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-    };
-
     const handleToggle = (value) => () => {
         const currentIndex = checked.indexOf(value);
         const newChecked = [...checked];
@@ -97,6 +93,10 @@ export default function SelectRatings() {
     const handleAllLeft = () => {
         setLeft(left.concat(right));
         setRight([]);
+    };
+
+    const requestAccount = async () => {
+        await window.ethereum.request({ method: "eth_requestAccounts" });
     };
 
     const sendRatings = async () => {
