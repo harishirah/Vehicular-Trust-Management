@@ -5,7 +5,6 @@ import { ethers } from "ethers";
 import { MainContextProvider } from "./context";
 import "./App.css";
 import MainPage from "./pages/MainPage";
-import TestPage from "./pages/TestPage";
 
 function App() {
 	const removeCache = async () => {
@@ -30,9 +29,6 @@ function App() {
 				<Switch>
 					<Route exact path="/">
 						<MainPage />
-					</Route>
-					<Route exact path="/test">
-						<TestPage />
 					</Route>
 				</Switch>
 			</Router>
