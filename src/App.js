@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { MainContextProvider } from "./context";
 import "./App.css";
 import MainPage from "./pages/MainPage";
-import TestPage from "./pages/TestPage";
 
 function App() {
     return (
@@ -13,9 +12,6 @@ function App() {
                 <Switch>
                     <Route exact path="/">
                         <MainPage />
-                    </Route>
-                    <Route exact path="/test">
-                        <TestPage />
                     </Route>
                 </Switch>
             </Router>
