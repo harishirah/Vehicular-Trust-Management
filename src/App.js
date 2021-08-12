@@ -5,6 +5,8 @@ import { ethers } from "ethers";
 import { MainContextProvider } from "./context";
 import "./App.css";
 import MainPage from "./pages/MainPage";
+import VHome from "./pages/VHome";
+import VChat from "./pages/VChat";
 
 function App() {
 	const removeCache = async () => {
@@ -29,6 +31,12 @@ function App() {
 				<Switch>
 					<Route exact path="/">
 						<MainPage />
+					</Route>
+					<Route exact path="/v2v">
+						<VHome />
+					</Route>
+					<Route exact path="/chat/:room/:username">
+						<VChat />
 					</Route>
 				</Switch>
 			</Router>
