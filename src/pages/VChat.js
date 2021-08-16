@@ -1,24 +1,47 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router";
 import { useSocket } from "../context/SocketProvider";
 import useChat from "../hooks/useChat";
+import useLocation from "../hooks/useLocation";
 
 function VChat() {
-	const { username, room } = useParams();
+	const { room } = useParams();
 	const socket = useSocket();
+	const chatRef = useRef(null);
 	const { messages, addMessage } = useChat();
+	const { getCurrentLocation } = useLocation();
 	const [message, setMessage] = useState("");
 	const [users, setUsers] = useState([]);
+
+	useEffect(() => {
+		if (chatRef) {
+			chatRef.current.addEventListener("DOMNodeInserted", (event) => {
+				const { currentTarget: target } = event;
+				target.scroll({ top: target.scrollHeight, behavior: "smooth" });
+			});
+		}
+	}, []);
 
 	useEffect(() => {
 		socket.on("message", (msg) => {
 			if (msg)
 				addMessage(msg.text, "message", msg.username, msg.createdAt);
-			console.log(msg);
 		});
+		return () => socket.off("message");
 	}, [socket, addMessage]);
+
+	useEffect(() => {
+		socket.on("locationMessage", (msg) => {
+			if (msg) {
+				addMessage(msg.url, "location", msg.username, msg.createdAt);
+			}
+		});
+		return () => socket.off("locationMessage");
+	}, [socket, addMessage]);
+
 	useEffect(() => {
 		socket.on("roomData", ({ users }) => setUsers(users));
+		return () => socket.off("roomData");
 	}, [socket]);
 	const sendMessage = (e) => {
 		e.preventDefault();
@@ -27,7 +50,9 @@ function VChat() {
 	};
 
 	const sendLocation = () => {
-		addMessage(message, "location", username);
+		let pos = getCurrentLocation();
+		if (pos && pos.latitude && pos.longitude)
+			socket.emit("sendLocation", pos, () => {});
 	};
 
 	return (
@@ -55,7 +80,7 @@ function VChat() {
 				</div>
 				<div className="chat__main">
 					<h1 style={{ margin: 20 }}>V2V Chat</h1>
-					<div id="messages" className="chat__messages">
+					<div id="messages" className="chat__messages" ref={chatRef}>
 						{messages &&
 							messages.length > 0 &&
 							messages.map(

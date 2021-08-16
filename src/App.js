@@ -26,6 +26,7 @@ function App() {
 	useEffect(() => {
 		removeCache();
 	}, []);
+
 	return (
 		<MainContextProvider>
 			<SocketProvider>
