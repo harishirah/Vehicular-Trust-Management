@@ -1,37 +1,33 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router";
-import { useState } from "react";
+import { useSocket } from "../context/SocketProvider";
+import useChat from "../hooks/useChat";
 
 function VChat() {
 	const { username, room } = useParams();
-	const [messages, setMessages] = useState([]);
-	const [message, setMessage] = useState("hakjfds");
-	const [createdAt, setCreatedAt] = useState("23/12/10");
+	const socket = useSocket();
+	const { messages, addMessage } = useChat();
+	const [message, setMessage] = useState("");
+	const [users, setUsers] = useState([]);
 
-	const setCurrentTime = () => {
-		var time = new Date().toLocaleTimeString([], {
-			hour: "2-digit",
-			minute: "2-digit",
+	useEffect(() => {
+		socket.on("message", (msg) => {
+			if (msg)
+				addMessage(msg.text, "message", msg.username, msg.createdAt);
+			console.log(msg);
 		});
-		setCreatedAt(time);
-	};
-
+	}, [socket, addMessage]);
+	useEffect(() => {
+		socket.on("roomData", ({ users }) => setUsers(users));
+	}, [socket]);
 	const sendMessage = (e) => {
 		e.preventDefault();
-		setCurrentTime();
-		setMessages((prevMessages) => [
-			...prevMessages,
-			{ message: message, type: "message" },
-		]);
+		socket.emit("sendMessage", message, () => null);
 		setMessage("");
 	};
 
 	const sendLocation = () => {
-		setCurrentTime();
-		setMessages((prevMessages) => [
-			...prevMessages,
-			{ message: "https://www.google.com/", type: "location" },
-		]);
+		addMessage(message, "location", username);
 	};
 
 	return (
@@ -41,34 +37,55 @@ function VChat() {
 					<h2 className="room-title">{room}</h2>
 					<h3 className="list-title">Users</h3>
 					<ul className="users">
-						<li>{username}</li>
+						{users &&
+							users.length > 0 &&
+							users.map(({ username, id, room: r }, idx) => {
+								if (room === r)
+									return (
+										<li
+											style={{ color: "aquamarine" }}
+											key={idx}
+										>
+											{username}
+										</li>
+									);
+								return <li key={idx}></li>;
+							})}
 					</ul>
 				</div>
 				<div className="chat__main">
 					<h1 style={{ margin: 20 }}>V2V Chat</h1>
 					<div id="messages" className="chat__messages">
-						{messages.map(({ message, type }) => (
-							<div className="message">
-								<p>
-									<span className="message__name">
-										{username}
-									</span>
-									<span className="message__meta">
-										{" "}
-										{createdAt}
-									</span>
-								</p>
-								{type == "message" ? (
-									<p>{message}</p>
-								) : (
-									<p>
-										<a href={message} target="_blank">
-											My Current Location
-										</a>
-									</p>
-								)}
-							</div>
-						))}
+						{messages &&
+							messages.length > 0 &&
+							messages.map(
+								({ text, type, createdAt, user }, idx) => (
+									<div className="message" key={idx}>
+										<p>
+											<span className="message__name">
+												{user}
+											</span>
+											<span className="message__meta">
+												{" "}
+												{createdAt}
+											</span>
+										</p>
+										{type === "message" ? (
+											<p>{text}</p>
+										) : (
+											<p>
+												<a
+													href={text}
+													target="_blank"
+													rel="noreferrer"
+												>
+													My Current Location
+												</a>
+											</p>
+										)}
+									</div>
+								)
+							)}
 					</div>
 
 					<div className="compose">
@@ -79,7 +96,7 @@ function VChat() {
 								placeholder="Type here"
 								onChange={(e) => setMessage(e.target.value)}
 								required
-								autocomplete="off"
+								autoComplete="off"
 							/>
 							<button type="submit">Send</button>
 						</form>
