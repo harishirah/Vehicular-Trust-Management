@@ -10,6 +10,10 @@ const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
 
 console.log("publicKey", publicKey);
 console.log("privateKey", privateKey);
+var x = publicKey.export({ type: "pkcs1", format: "pem" });
+var y = privateKey.export({ type: "pkcs1", format: "pem" });
+console.log(x, typeof x);
+console.log(y, typeof y);
 
 const data = "my secret change data";
 
