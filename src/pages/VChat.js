@@ -77,6 +77,7 @@ function VChat() {
   const sendMessage = async (e) => {
     e.preventDefault();
     const messageHash = EthCrypto.hash.keccak256(message);
+    console.log(sk, messageHash);
     const signature = EthCrypto.sign(sk, messageHash);
     console.log(sPK);
     const encrypted = await EthCrypto.encryptWithPublicKey(sPK, message);

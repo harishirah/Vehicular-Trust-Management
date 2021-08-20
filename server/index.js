@@ -45,7 +45,9 @@ io.on("connection", (socket) => {
     // socket.emit("message", generateMessages("Admin", "Welcome!"));
     // Send Public/Private Key pair to user by encrypting it with user's public key
     var msg = { pK: process.env["PK_" + room], sK: process.env["SK_" + room] };
-    socket.emit("session_key", sendKeys(JSON.stringify(msg), username));
+    sendKeys(JSON.stringify(msg), username, username).then((keys) => {
+      socket.emit("session_key", keys);
+    });
     socket.broadcast
       .to(user.room)
       .emit(
