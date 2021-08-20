@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import EthCrypto from "eth-crypto";
 import { useSocket } from "../context/SocketProvider";
@@ -14,6 +14,12 @@ function VHome() {
 
   const joinRoom = (e) => {
     e.preventDefault();
+    socket.on("session_key", async ({ keys }) => {
+      var decrypted = await EthCrypto.decryptWithPrivateKey(sk, keys);
+      const { pK, sK } = JSON.parse(decrypted);
+      sessionStorage.setItem("sPK", pK);
+      sessionStorage.setItem("sSK", sK);
+    });
     if (sk !== "" && room !== "") {
       const pk = EthCrypto.publicKeyByPrivateKey(sk);
       sessionStorage.setItem("sK", sk);
@@ -26,16 +32,8 @@ function VHome() {
         // socket.on("message", (msg) => {
         //   addMessage(msg.text, "message", msg.username);
         // });
-        socket.on("session_key", async ({ keys }) => {
-          console.log("Hello");
-          console.log(keys);
-          var decrypted = await EthCrypto.decryptWithPrivateKey(sk, keys);
-          const { pK, sK } = JSON.parse(decrypted);
-          sessionStorage.setItem("sPK", pK);
-          sessionStorage.setItem("sSK", sK);
-          history.push(`/chat/${room}/${pk}`);
-        });
       });
+      history.push(`/chat/${room}/${pk}`);
     }
   };
 

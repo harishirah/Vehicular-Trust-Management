@@ -26,7 +26,6 @@ const generateLocationMessage = (username, url) => {
 
 const sendKeys = async (msg, key) => {
   const encrypted = await EthCrypto.encryptWithPublicKey(key, msg);
-  console.log("Running");
   return {
     keys: encrypted,
     createdAt: getCurrentTime(),
