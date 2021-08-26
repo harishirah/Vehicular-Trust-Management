@@ -19,36 +19,29 @@ function VHome() {
 
 	const joinRoom = (e) => {
 		e.preventDefault();
-		if (!location) setLocation(getCurrentLocation());
 		socket.on("session_key", async ({ keys }) => {
 			var decrypted = await EthCrypto.decryptWithPrivateKey(sk, keys);
-			console.log(decrypted);
 			const { pK, sK } = JSON.parse(decrypted);
-			console.log(pK, sK);
 			sessionStorage.setItem("sPK", pK);
 			sessionStorage.setItem("sSK", sK);
 		});
-		if (sk !== "") {
+		if (sk !== "" && room !== "") {
 			const pk = EthCrypto.publicKeyByPrivateKey(sk);
 			sessionStorage.setItem("sK", sk);
 			sessionStorage.setItem("pK", pk);
-			socket.emit("join", { username: pk, room: "321" }, (error) => {
+			socket.emit("join", { username: pk, room }, (error) => {
 				if (error) {
 					alert("Provide a valid Private Key", error);
-					history.push("/");
+					history.push("/v2v");
 				}
-				// socket.on("message", (msg) => {
-				//   addMessage(msg.text, "message", msg.username);
-				// });
+				socket.on("admin", (msg) => {
+					console.log("VHOME");
+					addMessage(msg.text, "message", msg.username);
+				});
 			});
 			history.push(`/chat/${room}/${pk}`);
 		}
 	};
-
-	// socket.emit("sendLocation", pos, () => {});
-	useEffect(() => {
-		setLocation(getCurrentLocation());
-	}, []);
 
 	return (
 		<div className="centered-form">
@@ -61,18 +54,18 @@ function VHome() {
 						value={sk}
 						onChange={(e) => setSK(e.target.value)}
 						name="sk"
-						placeholder="Don't worry this key will remain in the browser only"
+						placeholder="Don't worry this key will not escape your device"
 						required
 					/>
-					{/* <label>Room</label>
-          <input
-            type="text"
-            name="room"
-            value={room}
-            onChange={(e) => setRoom(e.target.value)}
-            placeholder="Room"
-            required
-          /> */}
+					<label>Room</label>
+					<input
+						type="text"
+						name="room"
+						value={room}
+						onChange={(e) => setRoom(e.target.value)}
+						placeholder="Room"
+						required
+					/>{" "}
 					<button type="submit">Join</button>
 				</form>
 			</div>

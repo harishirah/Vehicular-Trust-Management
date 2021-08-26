@@ -42,7 +42,7 @@ io.on("connection", (socket) => {
 			return callback(error);
 		}
 		socket.join(user.room);
-		// socket.emit("message", generateMessages("Admin", "Welcome!"));
+		socket.emit("admin", generateMessages("Admin", "Welcome!"));
 		// Send Public/Private Key pair to user by encrypting it with user's public key
 		var msg = {
 			pK: process.env["PK_" + room],
@@ -54,8 +54,11 @@ io.on("connection", (socket) => {
 		socket.broadcast
 			.to(user.room)
 			.emit(
-				"message",
-				generateMessages(user.username + " has joined the ChatRoom")
+				"admin",
+				generateMessages(
+					"Admin",
+					user.username + " has joined the ChatRoom"
+				)
 			);
 		io.to(user.room).emit("roomData", {
 			room: user.room,
@@ -90,15 +93,16 @@ io.on("connection", (socket) => {
 
 	socket.on("disconnect", () => {
 		const user = removeUser(socket.id);
-
 		if (user) {
-			io.to(user.room).emit(
-				"message",
-				generateMessages(
-					"Admin",
-					user.username + " has left the ChatRoom"
-				)
-			);
+			socket.broadcast
+				.to(user.room)
+				.emit(
+					"admin",
+					generateMessages(
+						"Admin",
+						user.username + " has left the ChatRoom"
+					)
+				);
 			io.to(user.room).emit("roomData", {
 				room: user.room,
 				users: getUsersInRoom(user.room),
