@@ -29,9 +29,10 @@ function VHome() {
           alert("Provide a valid Private Key", error);
           history.push("/v2v");
         }
-        // socket.on("message", (msg) => {
-        //   addMessage(msg.text, "message", msg.username);
-        // });
+        socket.on("admin", (msg) => {
+          console.log("VHOME");
+          addMessage(msg.text, "message", msg.username);
+        });
       });
       history.push(`/chat/${room}/${pk}`);
     }
@@ -48,7 +49,7 @@ function VHome() {
             value={sk}
             onChange={(e) => setSK(e.target.value)}
             name="sk"
-            placeholder="Don't worry this key will remain in the browser only"
+            placeholder="Don't worry this key will not escape your device"
             required
           />
           <label>Room</label>

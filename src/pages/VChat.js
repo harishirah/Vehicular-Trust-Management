@@ -5,10 +5,6 @@ import EthCrypto from "eth-crypto";
 import useChat from "../hooks/useChat";
 // import useLocation from "../hooks/useLocation";
 
-const sk = sessionStorage.getItem("sK");
-const sPK = sessionStorage.getItem("sPK");
-const sSK = sessionStorage.getItem("sSK");
-
 function VChat() {
 	const { room } = useParams();
 	const socket = useSocket();
@@ -47,44 +43,56 @@ function VChat() {
 		}
 	}, []);
 
-	useEffect(() => {
-		socket.on("message", async (msg) => {
-			if (!msg) return;
-			console.log(msg);
-			const { cipher, sign } = JSON.parse(msg.text);
-			const data = await EthCrypto.decryptWithPrivateKey(sSK, cipher);
-			const messageHash = EthCrypto.hash.keccak256(data);
-			const signer = EthCrypto.recoverPublicKey(sign, messageHash);
-			if (signer !== msg.username) return;
-			addMessage(data, "message", msg.username, msg.createdAt);
-		});
-		return () => socket.off("message");
-	}, [socket, addMessage]);
+  useEffect(() => {
+    socket.on("message", async (msg) => {
+      if (!msg) return;
+      const sSK = sessionStorage.getItem("sSK");
+      const { cipher, sign } = JSON.parse(msg.text);
+      const data = await EthCrypto.decryptWithPrivateKey(sSK, cipher);
+      const messageHash = EthCrypto.hash.keccak256(data);
+      const signer = EthCrypto.recoverPublicKey(sign, messageHash);
+      if (signer !== msg.username) return;
+      addMessage(data, "message", msg.username, msg.createdAt);
+    });
+    return () => socket.off("message");
+  }, [socket, addMessage]);
 
-	useEffect(() => {
-		socket.on("locationMessage", (msg) => {
-			if (msg) {
-				addMessage(msg.url, "location", msg.username, msg.createdAt);
-			}
-		});
-		return () => socket.off("locationMessage");
-	}, [socket, addMessage]);
+  useEffect(() => {
+    socket.on("admin", (msg) => {
+      console.log("VCHAt");
+      if (!msg) return;
+      addMessage(msg.text, "message", msg.username);
+    });
+    return () => socket.off("admin");
+  }, [socket, addMessage]);
 
-	useEffect(() => {
-		socket.on("roomData", ({ users }) => setUsers(users));
-		return () => socket.off("roomData");
-	}, [socket]);
-	const sendMessage = async (e) => {
-		e.preventDefault();
-		const messageHash = EthCrypto.hash.keccak256(message);
-		console.log(sk, messageHash);
-		const signature = EthCrypto.sign(sk, messageHash);
-		console.log(sPK);
-		const encrypted = await EthCrypto.encryptWithPublicKey(sPK, message);
-		const packet = { cipher: encrypted, sign: signature };
-		socket.emit("sendMessage", JSON.stringify(packet), () => null);
-		setMessage("");
-	};
+  useEffect(() => {
+    socket.on("locationMessage", (msg) => {
+      if (msg) {
+        addMessage(msg.url, "location", msg.username, msg.createdAt);
+      }
+    });
+    return () => socket.off("locationMessage");
+  }, [socket, addMessage]);
+
+  useEffect(() => {
+    socket.on("roomData", ({ users }) => setUsers(users));
+    return () => socket.off("roomData");
+  }, [socket]);
+
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    const messageHash = EthCrypto.hash.keccak256(message);
+    const sk = sessionStorage.getItem("sK");
+    const sPK = sessionStorage.getItem("sPK");
+    const signature = EthCrypto.sign(sk, messageHash);
+    console.log(sPK);
+    const encrypted = await EthCrypto.encryptWithPublicKey(sPK, message);
+    const packet = { cipher: encrypted, sign: signature };
+    socket.emit("sendMessage", JSON.stringify(packet), () => null);
+    setMessage("");
+  };
+
 
 	// const sendLocation = () => {
 	//   let pos = getCurrentLocation();
