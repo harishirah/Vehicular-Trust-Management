@@ -7,6 +7,7 @@ import "./App.css";
 import MainPage from "./pages/MainPage";
 import VHome from "./pages/VHome";
 import VChat from "./pages/VChat";
+import ProtectedRoute from "./utils/ProtectedRoute";
 import { SocketProvider } from "./context/SocketProvider";
 
 function App() {
@@ -33,14 +34,18 @@ function App() {
 				<Router>
 					<Switch>
 						<Route exact path="/">
-							<MainPage />
-						</Route>
-						<Route exact path="/v2v">
 							<VHome />
 						</Route>
-						<Route exact path="/chat/:room/:username">
-							<VChat />
-						</Route>
+						<ProtectedRoute
+							exact
+							path="/main"
+							component={MainPage}
+						/>
+						<ProtectedRoute
+							exact
+							path="/chat/:room/:username"
+							component={VChat}
+						/>
 					</Switch>
 				</Router>
 			</SocketProvider>
