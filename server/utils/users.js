@@ -52,6 +52,7 @@ const removeUser = (id) => {
         delete process.env["PK_" + removedUser.room];
     }
   }
+  return removedUser;
 };
 
 const getUser = (id) => {

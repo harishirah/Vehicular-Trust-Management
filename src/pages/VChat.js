@@ -5,10 +5,6 @@ import EthCrypto from "eth-crypto";
 import useChat from "../hooks/useChat";
 import useLocation from "../hooks/useLocation";
 
-const sk = sessionStorage.getItem("sK");
-const sPK = sessionStorage.getItem("sPK");
-const sSK = sessionStorage.getItem("sSK");
-
 function VChat() {
   const { room } = useParams();
   const socket = useSocket();
@@ -50,7 +46,7 @@ function VChat() {
   useEffect(() => {
     socket.on("message", async (msg) => {
       if (!msg) return;
-      console.log(msg);
+      const sSK = sessionStorage.getItem("sSK");
       const { cipher, sign } = JSON.parse(msg.text);
       const data = await EthCrypto.decryptWithPrivateKey(sSK, cipher);
       const messageHash = EthCrypto.hash.keccak256(data);
@@ -59,6 +55,15 @@ function VChat() {
       addMessage(data, "message", msg.username, msg.createdAt);
     });
     return () => socket.off("message");
+  }, [socket, addMessage]);
+
+  useEffect(() => {
+    socket.on("admin", (msg) => {
+      console.log("VCHAt");
+      if (!msg) return;
+      addMessage(msg.text, "message", msg.username);
+    });
+    return () => socket.off("admin");
   }, [socket, addMessage]);
 
   useEffect(() => {
@@ -74,10 +79,12 @@ function VChat() {
     socket.on("roomData", ({ users }) => setUsers(users));
     return () => socket.off("roomData");
   }, [socket]);
+
   const sendMessage = async (e) => {
     e.preventDefault();
     const messageHash = EthCrypto.hash.keccak256(message);
-    console.log(sk, messageHash);
+    const sk = sessionStorage.getItem("sK");
+    const sPK = sessionStorage.getItem("sPK");
     const signature = EthCrypto.sign(sk, messageHash);
     console.log(sPK);
     const encrypted = await EthCrypto.encryptWithPublicKey(sPK, message);
