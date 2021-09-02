@@ -1,19 +1,50 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { useParams } from "react-router";
 import { useSocket } from "../context/SocketProvider";
+import { makeStyles } from "@material-ui/core/styles";
 import EthCrypto from "eth-crypto";
+import Button from "@material-ui/core/Button";
 import useChat from "../hooks/useChat";
+import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import Select from "@material-ui/core/Select";
 import { MainContext } from "../context";
+// import useLocation from "../hooks/useLocation";
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    margin: "auto",
+  },
+  paper: {
+    width: 300,
+    height: 230,
+    overflow: "auto",
+  },
+  button: {
+    // margin: theme.spacing(0, 0),
+    padding: 0,
+  },
+  formControl: {
+    margin: theme.spacing(2),
+    minWidth: "80%",
+  },
+  selectEmpty: {
+    marginTop: theme.spacing(2),
+    padding: 10,
+  },
+}));
 
 function VChat() {
   const { room } = useParams();
   const socket = useSocket();
+  const classes = useStyles();
   const chatRef = useRef(null);
   const { messages, addMessage, updateStatus } = useChat();
-  const { location } = useContext(MainContext);
+  const { messages: rsuMessages, location } = useContext(MainContext);
+  // const { getCurrentLocation } = useLocation();
   const [message, setMessage] = useState("");
   const [users, setUsers] = useState([]);
-
   //   const custom = async () => {
   //     const address = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
   //     const sk =
@@ -33,15 +64,6 @@ function VChat() {
   //     console.log("Encryped", encrypted);
   //     console.log("Decrypted", decrypted);
   //   };
-
-  useEffect(() => {
-    if (chatRef) {
-      chatRef.current.addEventListener("DOMNodeInserted", (event) => {
-        const { currentTarget: target } = event;
-        target.scroll({ top: target.scrollHeight, behavior: "smooth" });
-      });
-    }
-  }, []);
 
   useEffect(() => {
     socket.on("message", async (msg) => {
@@ -83,9 +105,13 @@ function VChat() {
   // }, [socket, addMessage]);
 
   useEffect(() => {
-    socket.on("roomData", ({ users }) => setUsers(users));
-    return () => socket.off("roomData");
-  }, [socket]);
+    socket.on("locationMessage", (msg) => {
+      if (msg) {
+        addMessage(msg.url, "location", msg.username, msg.createdAt);
+      }
+    });
+    return () => socket.off("locationMessage");
+  }, [socket, addMessage]);
 
   const sendMessage = async (e) => {
     e.preventDefault();
@@ -105,12 +131,6 @@ function VChat() {
     socket.emit("sendMessage", JSON.stringify(packet), () => null);
     setMessage("");
   };
-
-  // const sendLocation = () => {
-  //   let pos = getCurrentLocation();
-  //   if (pos && pos.latitude && pos.longitude)
-  //     socket.emit("sendLocation", pos, () => {});
-  // };
 
   return (
     <>
@@ -152,7 +172,7 @@ function VChat() {
 
           <div className="compose">
             <form id="message-form" onSubmit={sendMessage}>
-              <input
+              {/* <input
                 name="message"
                 value={message}
                 placeholder="Type here"
@@ -160,7 +180,26 @@ function VChat() {
                 required
                 autoComplete="off"
               />
-              <button type="submit">Send</button>
+              <button type="submit">Send</button> */}
+              <FormControl className={classes.formControl}>
+                <InputLabel id="demo-simple-select-label">
+                  Select Message
+                </InputLabel>
+                <Select
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={message}
+                  required
+                  onChange={(e) => setMessage(e.target.value)}
+                >
+                  {rsuMessages.map((message, idx) => (
+                    <MenuItem key={idx} value={message}>
+                      {message}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Button type="submit">Send Message</Button>
             </form>
           </div>
         </div>

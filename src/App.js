@@ -36,11 +36,7 @@ function App() {
 						<Route exact path="/">
 							<VHome />
 						</Route>
-						<ProtectedRoute
-							exact
-							path="/main"
-							component={MainPage}
-						/>
+						<Route exact path="/main" component={MainPage} />
 						<ProtectedRoute
 							exact
 							path="/chat/:room/:username"
