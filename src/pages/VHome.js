@@ -48,7 +48,8 @@ function VHome() {
         }
         socket.on("admin", (msg) => {
           console.log("VHOME");
-          addMessage(msg.text, "message", msg.username);
+          var struct = { message: msg.text, status: 0 };
+          addMessage(struct, msg.username);
         });
       });
       history.push(`/chat/${room}/${pk}`);
