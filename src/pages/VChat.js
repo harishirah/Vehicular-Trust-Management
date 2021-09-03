@@ -11,6 +11,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import { MainContext } from "../context";
 import Message from "../components/Message";
+import { evaluateRatings } from "../utils/evaluateRatings";
 // import useLocation from "../hooks/useLocation";
 
 const useStyles = makeStyles((theme) => ({
@@ -138,7 +139,7 @@ function VChat() {
                 console.log(msgRef.current, idx);
                 if (msgRef.current[idx].struct.response === 0) {
                     //Handle sending to RSU part
-                    // (key,array(struct{address,rating})
+                    evaluateRatings(batch, key);
                     console.log("sent to RSU");
                 }
                 if (batch.hasOwnProperty(key)) {
