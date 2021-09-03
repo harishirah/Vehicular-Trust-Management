@@ -13,12 +13,17 @@ contract RSU {
         int trustValue;
         bool isRevoked;
     }
-    struct ratingRequest {
-		uint vId;
+
+    struct ratingArray {
+		address addr;
   	    int rating;
     }
-    uint public numberOfMessages;
+
+    uint256 public sessionStart;
+    mapping(string=> ratingArray[]) sessionStorage;
+    string[] sessionEvents;
     Vehicle[] vehicles;
+    uint public numberOfMessages;
     string[] public msgs;
     mapping(string => uint) messageIds;
     mapping(address => bool) vehicleRegistered;
@@ -49,6 +54,7 @@ contract RSU {
     
     constructor() {
         admin = msg.sender;
+        sessionStart = 0; // Session Start Time at Contract Initialisation
 		/* vehicle[0] is dummy as any invalid message points to index = 0 */
 		vehicles.push(Vehicle(msg.sender, 0, true));
         messageIds["traffic jam"] = 1;
@@ -86,37 +92,42 @@ contract RSU {
 	}
 
 	/* Transactions (Require Gas Fees) */
-    function sendRatings(ratingRequest[] memory inputRatings, string memory message) public isValidVehicle(msg.sender) isValidMessage(message) {
-        int pos = 0; int neg = 0; 
-        for(uint i = 0; i < inputRatings.length; i++) {
-            // check if the message sender is a valid vehicle
-			if(inputRatings[i].vId == 0 || inputRatings[i].vId > vehicles.length) {
-				inputRatings[i].rating = 0;
-				continue;
-			}
-			if(vehicles[inputRatings[i].vId].isRevoked) {
-				inputRatings[i].rating = 0;
-				continue;
-			}
-            if(inputRatings[i].rating == 1) pos++;
-            else if (inputRatings[i].rating == -1) neg++;
+    function sendRatings(ratingArray[] memory inputRatings, string memory eventHash,string memory message,uint256 timeStamp) public isValidVehicle(msg.sender) isValidMessage(message) {
+        // Map(eventHash=>array[structs])
+        if(sessionStart+1800000<=timeStamp){
+            sessionEnd();
+            sessionStart=timeStamp;
         }
-
-		for(uint i = 0; i < inputRatings.length; i++) {
-			// calculate trust value offsets and update the trust value.
-			if(inputRatings[i].rating == 0) continue;
-			uint vId = inputRatings[i].vId;
-			int trustValueOffset = pos - neg;
-			vehicles[vId].trustValue += inputRatings[i].rating * trustValueOffset;
-			if(vehicles[vId].trustValue <= 0) vehicles[vId].isRevoked = true;
-		}
+        if(sessionStorage[eventHash].length==0)sessionEvents.push(eventHash);
+        for(uint i=0;i<inputRatings.length;i++){
+            // check if the message sender is a valid vehicle
+			if(vIds[inputRatings[i].addr] == 0 || vIds[inputRatings[i].addr] > vehicles.length) {
+				inputRatings[i].rating = 0;
+				continue;
+			}
+			if(vehicles[vIds[inputRatings[i].addr]].isRevoked) {
+				inputRatings[i].rating = 0;
+				continue;
+			}
+            bool pushed=false;
+            for(uint j=0;j<sessionStorage[eventHash].length;j++){
+                if(sessionStorage[eventHash][j].addr==inputRatings[i].addr){
+                    pushed=true;
+                    sessionStorage[eventHash][j].rating+=inputRatings[i].rating;
+                    break;
+                }
+            }
+            if(pushed==false){
+                sessionStorage[eventHash].push(inputRatings[i]);
+            }
+        }
     } 
     
 	// Registering a new Vehicle (only by Transport Administrator)
     function addVehicle(address _addr) public onlyAdmin {
         require(vehicleRegistered[_addr] == false, "Vehicle Already Registered!!");
         vehicleRegistered[_addr] = true;
-        vehicles.push(Vehicle(_addr, 10, false));
+        vehicles.push(Vehicle(_addr, 100, false));
         vIds[_addr] = vehicles.length - 1;
     }
     
@@ -125,5 +136,37 @@ contract RSU {
         messageIds[message]=numberOfMessages;
         msgs.push(message);
         numberOfMessages+=1;
+    }
+
+    function sessionEnd() public{
+        for(uint i=0;i<sessionEvents.length;i++){
+            int pos=0;
+            int neg=0;
+            for(uint j=0;j<sessionStorage[sessionEvents[i]].length;j++){
+                if(sessionStorage[sessionEvents[i]][j].rating<0){
+                    neg-=sessionStorage[sessionEvents[i]][j].rating;
+                }else{
+                    pos+=sessionStorage[sessionEvents[i]][j].rating;
+                }
+            }
+            int offset=(1000*(pos*pos*pos-neg*neg*neg))/((pos*pos+neg*neg)*(pos+neg));
+            for(uint j=0;j<sessionStorage[sessionEvents[i]].length;j++){
+                if(sessionStorage[sessionEvents[i]][j].rating<=0){
+                    vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue-=offset;
+                    // Check For revoke
+                    if(vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue <= 0) {
+                        vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].isRevoked = true;
+                    }
+                }else{
+                    vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue+=offset;
+                    // Check For Inflation
+                    if(vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue > 250) {
+                        vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue = 250;
+                    }
+                }
+            }
+            delete sessionStorage[sessionEvents[i]];
+        }
+        delete sessionEvents;
     }
 }
