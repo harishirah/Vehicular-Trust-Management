@@ -94,7 +94,7 @@ contract RSU {
 	/* Transactions (Require Gas Fees) */
     function sendRatings(ratingArray[] memory inputRatings, string memory eventHash,string memory message,uint256 timeStamp) public isValidVehicle(msg.sender) isValidMessage(message) {
         // Map(eventHash=>array[structs])
-        if(sessionStart+1800000<=timeStamp){
+        if(sessionStart+180000<=timeStamp){
             sessionEnd();
             sessionStart=timeStamp;
         }
@@ -127,7 +127,7 @@ contract RSU {
     function addVehicle(address _addr) public onlyAdmin {
         require(vehicleRegistered[_addr] == false, "Vehicle Already Registered!!");
         vehicleRegistered[_addr] = true;
-        vehicles.push(Vehicle(_addr, 100, false));
+        vehicles.push(Vehicle(_addr, 1000, false));
         vIds[_addr] = vehicles.length - 1;
     }
     
@@ -149,7 +149,7 @@ contract RSU {
                     pos+=sessionStorage[sessionEvents[i]][j].rating;
                 }
             }
-            int offset=(1000*(pos*pos*pos-neg*neg*neg))/((pos*pos+neg*neg)*(pos+neg));
+            int offset=(100*(pos*pos*pos-neg*neg*neg))/((pos*pos+neg*neg)*(pos+neg));
             for(uint j=0;j<sessionStorage[sessionEvents[i]].length;j++){
                 if(sessionStorage[sessionEvents[i]][j].rating<=0){
                     vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue-=offset;
@@ -160,8 +160,8 @@ contract RSU {
                 }else{
                     vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue+=offset;
                     // Check For Inflation
-                    if(vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue > 250) {
-                        vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue = 250;
+                    if(vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue > 1500) {
+                        vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue = 1500;
                     }
                 }
             }
