@@ -138,6 +138,7 @@ function VChat() {
                 console.log(msgRef.current, idx);
                 if (msgRef.current[idx].struct.response === 0) {
                     //Handle sending to RSU part
+                    // (key,array(struct{address,rating})
                     console.log("sent to RSU");
                 }
                 if (batch.hasOwnProperty(key)) {
