@@ -18,7 +18,22 @@ function AdminPage() {
 	const [open, setOpen] = useState(false);
 	const [getInfoAddr, setGetInfoAddr] = useState();
 	const [vInfo, setVInfo] = useState([]);
+	const [trustValue, setTrustValue] = useState();
+	const [trustAddr, setTrustAddr] = useState();
 	const { addVehicle, addMessage } = useContext(MainContext);
+
+	const fetchTrustValue = async () => {
+		if (typeof window.ethereum === undefined) return;
+		const provider = new ethers.providers.Web3Provider(window.ethereum);
+		const contract = new ethers.Contract(rsuAddress, RSU.abi, provider);
+		try {
+			const data = await contract.getTrustValue(trustAddr);
+			console.log(data.toNumber());
+			setTrustValue(data.toNumber());
+		} catch (err) {
+			console.log(err);
+		}
+	};
 
 	const requestAccount = async () => {
 		await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -101,6 +116,23 @@ function AdminPage() {
 			<div style={{ margin: "50px 0" }}>
 				<TextField
 					style={{ width: "60%" }}
+					label="Enter Vehicle Address"
+					helperText="Enter Public Address.."
+					value={trustAddr}
+					onChange={(e) => setTrustAddr(e.target.value)}
+				/>
+				<Button
+					onClick={fetchTrustValue}
+					variant="contained"
+					color="primary"
+				>
+					Get Trust Value
+				</Button>
+				{trustValue && <div>{trustValue}</div>}
+			</div>
+			<div style={{ margin: "50px 0" }}>
+				<TextField
+					style={{ width: "60%" }}
 					label="New Message"
 					helperText="Enter New Message.."
 					value={message}
@@ -120,10 +152,10 @@ function AdminPage() {
 					variant="contained"
 					color="primary"
 				>
-					Open Windows
+					Open Vehicle Tab
 				</Button>
 			</div>
-			<div style={{ margin: "50px 0" }}>
+			{/* <div style={{ margin: "50px 0" }}>
 				<TextField
 					style={{ width: "60%" }}
 					label="Get Vehicle Info"
@@ -149,7 +181,7 @@ function AdminPage() {
 			</div>
 			<div style={{ margin: "50px 0" }}>
 				<MessageList rsuAddress={rsuAddress} />
-			</div>
+			</div> */}
 		</Container>
 	);
 }

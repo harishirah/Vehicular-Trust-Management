@@ -13,94 +13,94 @@ import VehiclesPage from "./VehiclesPage";
 import AdminPage from "./AdminPage";
 
 function TabPanel(props) {
-    const { children, value, index, ...other } = props;
+	const { children, value, index, ...other } = props;
 
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`nav-tabpanel-${index}`}
-            aria-labelledby={`nav-tab-${index}`}
-            {...other}
-        >
-            {value === index && (
-                <Box p={3}>
-                    <Typography>{children}</Typography>
-                </Box>
-            )}
-        </div>
-    );
+	return (
+		<div
+			role="tabpanel"
+			hidden={value !== index}
+			id={`nav-tabpanel-${index}`}
+			aria-labelledby={`nav-tab-${index}`}
+			{...other}
+		>
+			{value === index && (
+				<Box p={3}>
+					<Typography>{children}</Typography>
+				</Box>
+			)}
+		</div>
+	);
 }
 
 TabPanel.propTypes = {
-    children: PropTypes.node,
-    index: PropTypes.any.isRequired,
-    value: PropTypes.any.isRequired,
+	children: PropTypes.node,
+	index: PropTypes.any.isRequired,
+	value: PropTypes.any.isRequired,
 };
 
 function a11yProps(index) {
-    return {
-        id: `nav-tab-${index}`,
-        "aria-controls": `nav-tabpanel-${index}`,
-    };
+	return {
+		id: `nav-tab-${index}`,
+		"aria-controls": `nav-tabpanel-${index}`,
+	};
 }
 
 function LinkTab(props) {
-    return (
-        <Tab
-            component="a"
-            onClick={(event) => {
-                event.preventDefault();
-            }}
-            {...props}
-        />
-    );
+	return (
+		<Tab
+			component="a"
+			onClick={(event) => {
+				event.preventDefault();
+			}}
+			{...props}
+		/>
+	);
 }
 
 const useStyles = makeStyles((theme) => ({
-    root: {
-        flexGrow: 1,
-        backgroundColor: theme.palette.background.paper,
-    },
+	root: {
+		flexGrow: 1,
+		backgroundColor: theme.palette.background.paper,
+	},
 }));
 
 function MainPage() {
-    const classes = useStyles();
-    const [value, setValue] = React.useState(0);
+	const classes = useStyles();
+	const [value, setValue] = React.useState(0);
 
-    const handleChange = (event, newValue) => {
-        setValue(newValue);
-    };
+	const handleChange = (event, newValue) => {
+		setValue(newValue);
+	};
 
-    return (
-        <div className={classes.root}>
-            <AppBar position="static">
-                <Tabs
-                    variant="fullWidth"
-                    value={value}
-                    onChange={handleChange}
-                    aria-label="nav tabs example"
-                >
-                    <LinkTab label="RSU" href="/drafts" {...a11yProps(0)} />
-                    <LinkTab label="Vehicle" href="/trash" {...a11yProps(1)} />
-                    <LinkTab
-                        label="Transport Administrator"
-                        href="/spam"
-                        {...a11yProps(2)}
-                    />
-                </Tabs>
-            </AppBar>
-            <TabPanel value={value} index={0}>
+	return (
+		<div className={classes.root}>
+			<AppBar position="static">
+				<Tabs
+					variant="fullWidth"
+					value={value}
+					onChange={handleChange}
+					aria-label="nav tabs example"
+				>
+					{/* <LinkTab label="RSU" href="/drafts" {...a11yProps(0)} />
+					<LinkTab label="Vehicle" href="/trash" {...a11yProps(1)} /> */}
+					<LinkTab
+						label="Transport Administrator"
+						href="/spam"
+						{...a11yProps(2)}
+					/>
+				</Tabs>
+			</AppBar>
+			{/* <TabPanel value={value} index={0}>
                 <RsuPage />
             </TabPanel>
             <TabPanel value={value} index={1}>
                 <VehiclesPage />
-            </TabPanel>
-            <TabPanel value={value} index={2}>
-                <AdminPage />
-            </TabPanel>
-        </div>
-    );
+            </TabPanel> */}
+			<TabPanel value={value} index={0}>
+				<AdminPage />
+			</TabPanel>
+		</div>
+	);
 }
 
 export default MainPage;
