@@ -149,7 +149,7 @@ contract RSU {
                     pos+=sessionStorage[sessionEvents[i]][j].rating;
                 }
             }
-            int offset=(100*(pos*pos*pos-neg*neg*neg))/((pos*pos+neg*neg)*(pos+neg));
+            int offset=(500*(pos*pos*pos-neg*neg*neg))/((pos*pos+neg*neg)*(pos+neg));
             for(uint j=0;j<sessionStorage[sessionEvents[i]].length;j++){
                 if(sessionStorage[sessionEvents[i]][j].rating<=0){
                     vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue-=offset;
