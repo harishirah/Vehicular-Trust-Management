@@ -1,1 +1,1 @@
-export const rsuAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+export const rsuAddress = "0x6eeF7cE88e313fEF79aAb15Daf7289a4Ba7664a1";
