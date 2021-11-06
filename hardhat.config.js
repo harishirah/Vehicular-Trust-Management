@@ -17,7 +17,7 @@ task("accounts", "Prints the list of accounts", async () => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 const ROPSTEN_PRIVATE_KEY =
-	"0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+	"75fdd6789152c980f8d8b38c863e0405a03db118e2c07fabc4f27d7a4e29adf6";
 
 module.exports = {
 	solidity: "0.8.4",
@@ -31,8 +31,14 @@ module.exports = {
 		ropsten: {
 			url: "https://eth-ropsten.alchemyapi.io/v2/JqF5DjS081ny1pMcb4GSgtwtcRT0JXUs",
 			accounts: [`${ROPSTEN_PRIVATE_KEY}`],
-			gas: 2100000,
-			gasPrice: 80000000000,
+			gas: 6000000,
+			gasPrice: 10000000000,
+		},
+		kovan: {
+			url: "https://eth-kovan.alchemyapi.io/v2/6kgGSWRJUm27kJMD4ynvfC4XzamiWoRJ",
+			accounts: [`${ROPSTEN_PRIVATE_KEY}`],
+			gas: 6000000,
+			gasPrice: 10000000000,
 		},
 	},
 };

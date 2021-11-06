@@ -78,7 +78,7 @@ contract RSU {
     }  
     
     function getTrustValue(address _senderAddress) public view isValidVehicle(_senderAddress) returns (int) {
-        require(vehicleRegistered[msg.sender] == true || msg.sender == admin, "Sender is not a valid Identity!!");
+        // require(vehicleRegistered[msg.sender] == true || msg.sender == admin, "Sender is not a valid Identity!!");
         return vehicles[vIds[_senderAddress]].trustValue;
     }
 
