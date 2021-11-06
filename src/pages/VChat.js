@@ -13,9 +13,9 @@ import Select from "@material-ui/core/Select";
 import { MainContext } from "../context";
 import Message from "../components/Message";
 import { evaluateRatings } from "../utils/evaluateRatings";
-import fs from "fs";
+import RSU from "../RSU.json";
 
-const { abi } = JSON.parse(fs.readFileSync("../RSU.json"));
+const { abi } = RSU;
 const provider = new ethers.providers.InfuraProvider(
     process.env.REACT_APP_ETHEREUM_NETWORK,
     process.env.REACT_APP_PROJECT_ID

@@ -5,9 +5,8 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import RSU from "../RSU.json";
-const fs = require("fs");
 
-const { abi } = JSON.parse(fs.readFileSync("../RSU.json"));
+const { abi } = RSU;
 const provider = new ethers.providers.InfuraProvider(
     process.env.REACT_APP_ETHEREUM_NETWORK,
     process.env.REACT_APP_PROJECT_ID
