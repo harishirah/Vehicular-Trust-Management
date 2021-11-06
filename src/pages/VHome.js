@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import * as queryString from "query-string";
 import { useHistory } from "react-router-dom";
 import EthCrypto from "eth-crypto";
 import { useSocket } from "../context/SocketProvider";
@@ -9,6 +10,10 @@ import { useContext } from "react";
 import { MainContext } from "../context";
 
 function VHome() {
+    useEffect(() => {
+        console.log(location.search);
+        console.log(window.location.href);
+    }, []);
     const [sk, setSK] = useState("");
     const { addMessage } = useChat();
     const { getCurrentLocation } = useLocation();
@@ -58,19 +63,7 @@ function VHome() {
     return (
         <div className="centered-form">
             <div className="centered-form__box">
-                <h1>Join</h1>
-                <form onSubmit={joinRoom}>
-                    <label>Enter Private Key</label>
-                    <input
-                        type="text"
-                        value={sk}
-                        onChange={(e) => setSK(e.target.value)}
-                        name="sk"
-                        placeholder="Don't worry this key will not escape your device"
-                        required
-                    />
-                    <button type="submit">Join</button>
-                </form>
+                <h1>Please Wait....</h1>
             </div>
         </div>
     );
