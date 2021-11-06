@@ -2,30 +2,48 @@ import Container from "@material-ui/core/Container";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import React, { useContext, useState } from "react";
+const { ethers } = require("ethers");
+const fs = require("fs");
 import { ethers } from "ethers";
 
 import { rsuAddress } from "../constants";
 import MessagePopup from "../components/MessagePopup";
-import RSU from "../artifacts/contracts/RSU.sol/RSU.json";
-import MessageList from "../components/MessageList";
+import credentials from "../credentials";
 import { MainContext } from "../context";
+
+const { abi } = JSON.parse(fs.readFileSync("../RSU.json"));
 
 function AdminPage() {
 	const [address, setAddress] = useState();
 	const [message, setMessage] = useState();
 	const [severity, setSeverity] = useState();
 	const [popupMessage, setPopupMessage] = useState();
+	const [officialProb, setOfficialProb] = useState(0.0);
 	const [open, setOpen] = useState(false);
-	const [getInfoAddr, setGetInfoAddr] = useState();
-	const [vInfo, setVInfo] = useState([]);
+	const [prob, setProb] = useState(0.0);
 	const [trustValue, setTrustValue] = useState();
 	const [trustAddr, setTrustAddr] = useState();
 	const { addVehicle, addMessage } = useContext(MainContext);
 
+	const provider = new ethers.providers.InfuraProvider(
+		process.env.REACT_APP_ETHEREUM_NETWORK,
+		process.env.REACT_APP_PROJECT_ID
+	);
+
+	// Creating a signing account from a private key
+	const signer = new ethers.Wallet(
+		process.env.REACT_APP_TRANSPORT_ADMIN,
+		provider
+	);
+	// Creating a Contract instance connected to the signer
+	const contract = new ethers.Contract(
+		// Replace this with the address of your deployed contract
+		process.env.REACT_APP_RSU,
+		abi,
+		signer
+	);
+
 	const fetchTrustValue = async () => {
-		if (typeof window.ethereum === undefined) return;
-		const provider = new ethers.providers.Web3Provider(window.ethereum);
-		const contract = new ethers.Contract(rsuAddress, RSU.abi, provider);
 		console.log("Provider:", provider);
 		console.log("Contract:", contract);
 		try {
@@ -36,17 +54,8 @@ function AdminPage() {
 		}
 	};
 
-	const requestAccount = async () => {
-		await window.ethereum.request({ method: "eth_requestAccounts" });
-	};
-
 	const addNewVehicle = async () => {
 		if (!address) return;
-		if (typeof window.ethereum === undefined) return;
-		await requestAccount();
-		const provider = new ethers.providers.Web3Provider(window.ethereum);
-		const signer = provider.getSigner();
-		const contract = new ethers.Contract(rsuAddress, RSU.abi, signer);
 		const transaction = await contract.addVehicle(address);
 		await transaction.wait();
 		const vId = await contract.getVehicleId(address);
@@ -56,30 +65,28 @@ function AdminPage() {
 
 	const addNewMessage = async () => {
 		if (!message) return;
-		if (typeof window.ethereum === undefined) return;
-		await requestAccount();
-		const provider = new ethers.providers.Web3Provider(window.ethereum);
-		const signer = provider.getSigner();
-		const contract = new ethers.Contract(rsuAddress, RSU.abi, signer);
 		const transaction = await contract.addMsg(message);
 		await transaction.wait();
 		addMessage(message);
 		console.log("Message Added");
 	};
 
-	const getVehicleInfo = async () => {
-		if (typeof window.ethereum === undefined) return;
-		const provider = new ethers.providers.Web3Provider(window.ethereum);
-		const contract = new ethers.Contract(rsuAddress, RSU.abi, provider);
-		try {
-			const data = await contract.getVehicleInfo(getInfoAddr);
-			if (data) setVInfo(data);
-			console.log("Data : ", data);
-		} catch (err) {
-			setSeverity("error");
-			setPopupMessage(err.message);
-			setOpen(true);
-			console.log("Error : ", err);
+	const encodeQuery = (data) => {
+		let query = "";
+		for (let d in data)
+			query +=
+				encodeURIComponent(d) + "=" + encodeURIComponent(data[d]) + "&";
+		return query.slice(0, -1);
+	};
+
+	const openTabs = (e) => {
+		for (let key in credentials) {
+			const data = {
+				sk: key,
+				prob,
+				type: Math.random() < officialProb,
+			};
+			window.open(`http://localhost:3000?${encodeQuery(data)}`);
 		}
 	};
 
@@ -115,6 +122,32 @@ function AdminPage() {
 				</Button>
 			</div>
 			<div style={{ margin: "50px 0" }}>
+				<input
+					type="number"
+					title="Probability of Yes"
+					id="rate"
+					value={prob}
+					min="0.00"
+					step="0.01"
+					max="1.00"
+					presicion={2} //very important
+					onChange={(e) => setProb(e.target.value)}
+				/>
+			</div>
+			<div style={{ margin: "50px 0" }}>
+				<input
+					type="number"
+					title="Probability of Official Vehicle"
+					id="rate"
+					value={officialProb}
+					min="0.00"
+					step="0.01"
+					max="1.00"
+					presicion={2} //very important
+					onChange={(e) => setOfficialProb(e.target.value)}
+				/>
+			</div>
+			<div style={{ margin: "50px 0" }}>
 				<TextField
 					style={{ width: "60%" }}
 					label="Enter Vehicle Address"
@@ -148,11 +181,7 @@ function AdminPage() {
 				</Button>
 			</div>
 			<div style={{ margin: "50px 0" }}>
-				<Button
-					onClick={() => window.open("http://localhost:3000")}
-					variant="contained"
-					color="primary"
-				>
+				<Button onClick={openTabs} variant="contained" color="primary">
 					Open Vehicle Tab
 				</Button>
 			</div>
