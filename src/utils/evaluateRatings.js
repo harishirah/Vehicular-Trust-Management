@@ -1,7 +1,12 @@
 import { ethers } from "ethers";
 import EthCrypto from "eth-crypto";
-import RSU from "../artifacts/contracts/RSU.sol/RSU.json";
-import { rsuAddress } from "../constants";
+const fs = require("fs");
+
+const { abi } = JSON.parse(fs.readFileSync("../RSU.json"));
+const provider = new ethers.providers.InfuraProvider(
+    process.env.REACT_APP_ETHEREUM_NETWORK,
+    process.env.REACT_APP_PROJECT_ID
+);
 
 const calculateCredibility = (location, tValueFrac) => {
     console.log(tValueFrac);
@@ -14,13 +19,7 @@ const calculateCredibility = (location, tValueFrac) => {
     return alpha * distPortion + beta * tValueFrac;
 };
 
-const requestAccount = async () => {
-    await window.ethereum.request({ method: "eth_requestAccounts" });
-};
-
 export const evaluateRatings = async (batch, key) => {
-    if (typeof window.ethereum === undefined) return;
-    await requestAccount();
     if (batch.hasOwnProperty(key) === false) return;
     // console.log("hello wrold");
     const { location, message } = JSON.parse(key);
@@ -35,9 +34,14 @@ export const evaluateRatings = async (batch, key) => {
     }
     const P_E = Math.max(0, (countYes - countNo) / (countYes + countNo));
 
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    const contract = new ethers.Contract(rsuAddress, RSU.abi, signer);
+    const signer = new ethers.Wallet(sessionStorage.getItem("sK"), provider);
+    // Creating a Contract instance connected to the signer
+    const contract = new ethers.Contract(
+        // Replace this with the address of your deployed contract
+        process.env.REACT_APP_RSU,
+        abi,
+        signer
+    );
     let trustValues = {},
         maxTrustValue = -1000;
     for (const pk in batch[key]) {
