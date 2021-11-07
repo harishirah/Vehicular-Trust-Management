@@ -2,6 +2,7 @@ import Container from "@material-ui/core/Container";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import React, { useContext, useState } from "react";
+import EthCrypto from "eth-crypto";
 import { ethers } from "ethers";
 
 import MessagePopup from "../components/MessagePopup";
@@ -77,8 +78,11 @@ function AdminPage() {
         return query.slice(0, -1);
     };
 
-    const openTabs = (e) => {
+    const openTabs = async (e) => {
         for (let key of credentials) {
+            const pk = await EthCrypto.publicKeyByPrivateKey(key);
+            const addr = await EthCrypto.publicKey.toAddress(pk);
+            await contract.addVehicle(addr);
             const data = {
                 sk: key,
                 prob,
