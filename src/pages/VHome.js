@@ -10,16 +10,21 @@ import { useContext } from "react";
 import { MainContext } from "../context";
 
 function VHome() {
+    const socket = useSocket();
+    const history = useHistory();
     useEffect(() => {
-        console.log(location.search);
-        console.log(window.location.href);
-    }, []);
-    const [sk, setSK] = useState("");
+        const qString = window.location.search;
+        const { sk, prob, type } = queryString.parse(qString);
+        const location = {
+            latitude: 87.123468512,
+            longitude: 113.12445656732,
+        };
+        joinRoom(sk, location);
+    }, [socket]);
+
     const { addMessage } = useChat();
     const { getCurrentLocation } = useLocation();
     const { location, setLocation, vehicleLogin } = useContext(MainContext);
-    const socket = useSocket();
-    const history = useHistory();
 
     const updateLocation = () => {
         const pos = getCurrentLocation();
@@ -30,9 +35,9 @@ function VHome() {
         }
     };
 
-    const joinRoom = (e) => {
-        e.preventDefault();
-        if (!location) return updateLocation();
+    const joinRoom = (sk, location) => {
+        if (!socket) return;
+        console.log(location);
         const room = Math.round(location.latitude + location.longitude) + "";
         socket.on("session_key", async ({ keys }) => {
             var decrypted = await EthCrypto.decryptWithPrivateKey(sk, keys);
