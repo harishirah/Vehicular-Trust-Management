@@ -6,7 +6,6 @@ const { ethers } = require("ethers");
 const fs = require("fs");
 import { ethers } from "ethers";
 
-import { rsuAddress } from "../constants";
 import MessagePopup from "../components/MessagePopup";
 import credentials from "../credentials";
 import { MainContext } from "../context";
