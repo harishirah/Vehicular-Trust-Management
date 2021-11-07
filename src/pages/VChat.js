@@ -4,12 +4,7 @@ import { useSocket } from "../context/SocketProvider";
 import { makeStyles } from "@material-ui/core/styles";
 import EthCrypto from "eth-crypto";
 import { ethers } from "ethers";
-import Button from "@material-ui/core/Button";
 import useChat from "../hooks/useChat";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
 import { MainContext } from "../context";
 import Message from "../components/Message";
 import { evaluateRatings } from "../utils/evaluateRatings";
@@ -62,24 +57,56 @@ function VChat() {
 
     const msgRef = useRef(messages);
     msgRef.current = messages;
-    const HandleResponse = async (idx, resp) => {
-        const msgStruct = JSON.stringify({
-            message: messages[idx].struct.message,
-            type: resp, // 1 for yes and 0 for no
-            coordinates: location,
-            numberOfVehicles: users.length,
-            vPublicAddress: sessionStorage.getItem("pK"),
-        });
-        const messageHash = EthCrypto.hash.keccak256(msgStruct);
 
-        updateResponse(idx, resp);
-        const sk = sessionStorage.getItem("sK");
-        const sPK = sessionStorage.getItem("sPK");
-        const signature = EthCrypto.sign(sk, messageHash);
-        const encrypted = await EthCrypto.encryptWithPublicKey(sPK, msgStruct);
-        const packet = { cipher: encrypted, sign: signature };
-        socket.emit("sendMessage", JSON.stringify(packet), () => null);
-    };
+    useEffect(() => {
+        const sendMessage = async () => {
+            const idx = Math.floor(Math.random() * rsuMessages.length);
+            console.log(idx);
+            console.log(rsuMessages[idx]);
+            await fetchTrustValue();
+            const msgStruct = JSON.stringify({
+                message: rsuMessages[idx],
+                type: 1, // 1 for yes and 0 for no
+                coordinates: location,
+                numberOfVehicles: users.length,
+                vPublicAddress: sessionStorage.getItem("pK"),
+            });
+            const messageHash = EthCrypto.hash.keccak256(msgStruct);
+            const sk = sessionStorage.getItem("sK");
+            const sPK = sessionStorage.getItem("sPK");
+            const signature = EthCrypto.sign(sk, messageHash);
+            const encrypted = await EthCrypto.encryptWithPublicKey(
+                sPK,
+                msgStruct
+            );
+            const packet = { cipher: encrypted, sign: signature };
+            socket.emit("sendMessage", JSON.stringify(packet), () => null);
+            const key = JSON.stringify({
+                location: location,
+                message: message,
+            });
+            addMessage(
+                JSON.parse(msgStruct),
+                sessionStorage.getItem("pK"),
+                getCurrentTime()
+            );
+            setOwn((prevOwn) => {
+                prevOwn.add(key);
+                return prevOwn;
+            });
+            setTimeout(() => {
+                setOwn((prevOwn) => {
+                    // console.log(prevOwn);
+                    if (prevOwn.has(key)) prevOwn.delete(key);
+                    // console.log("AFter Remove", prevOwn);
+                    return prevOwn;
+                });
+            }, 40000);
+            setMessage("");
+        };
+        let timer = setInterval(sendMessage, 60000);
+        return () => clearInterval(timer); // cleanup the timer
+    }, []);
 
     const fetchTrustValue = async () => {
         const signer = new ethers.Wallet(
@@ -103,12 +130,13 @@ function VChat() {
         }
     };
     useEffect(() => {
-        let t1_id = null,
-            t2_id = null;
+        let t1_id = null;
         socket.on("message", async (msg) => {
             if (!msg) return;
             await fetchTrustValue();
             const sSK = sessionStorage.getItem("sSK");
+            const sk = sessionStorage.getItem("sK");
+            const sPK = sessionStorage.getItem("sPK");
             const { cipher, sign } = JSON.parse(msg.text);
             const data = await EthCrypto.decryptWithPrivateKey(sSK, cipher);
             const messageHash = EthCrypto.hash.keccak256(data);
@@ -138,14 +166,25 @@ function VChat() {
                 prevBatch[key] = init;
                 return prevBatch;
             });
-            msgStruct["status"] = 1; // 1 for mutable, 2 freezed
-            msgStruct["response"] = 0; // 0 for don't know, 1 for yes and 2 for No
+            msgStruct["status"] = 2; // 1 for mutable, 2 freezed
+            if (Math.random() >= 0.6) msgStruct["response"] = 0;
+            // 0 for don't know, 1 for yes and 2 for No
+            else if (Math.random() >= sessionStorage.getItem("prob"))
+                msgStruct["response"] = 2;
+            else msgStruct["response"] = 1;
+            if (msgStruct["response"]) {
+                const Hsh = EthCrypto.hash.keccak256(JSON.stringify(msgStruct));
+                const signe = EthCrypto.sign(sk, Hsh);
+                const encryp = await EthCrypto.encryptWithPublicKey(
+                    sPK,
+                    JSON.stringify(msgStruct)
+                );
+                const packet = { cipher: encryp, sign: signe };
+                socket.emit("sendMessage", JSON.stringify(packet), () => null);
+                return;
+            }
             const idx = addMessage(msgStruct, msg.username, msg.createdAt);
-            t1_id = setTimeout(() => {
-                updateStatus(idx);
-                setTemp(idx);
-            }, 30000);
-            t2_id = setTimeout(async () => {
+            t1_id = setTimeout(async () => {
                 setTemp(idx);
                 // console.log(msgRef.current, idx);
                 if (msgRef.current[idx].struct.response === 0) {
@@ -166,7 +205,7 @@ function VChat() {
             // clearTimeout(t1_id);
             // clearTimeout(t2_id);
         };
-    }, [socket, addMessage, updateStatus, messages, batch, own]);
+    }, [socket, addMessage, messages, batch, own]);
 
     useEffect(() => {
         socket.on("roomData", ({ users }) => setUsers(users));
@@ -182,15 +221,6 @@ function VChat() {
         return () => socket.off("admin");
     }, [socket, addMessage]);
 
-    // useEffect(() => {
-    //   socket.on("locationMessage", (msg) => {
-    //     if (msg) {
-    //       addMessage(msg.url, "location", msg.username, msg.createdAt);
-    //     }
-    //   });
-    //   return () => socket.off("locationMessage");
-    // }, [socket, addMessage]);
-
     useEffect(() => {
         socket.on("locationMessage", (msg) => {
             if (msg) {
@@ -199,48 +229,6 @@ function VChat() {
         });
         return () => socket.off("locationMessage");
     }, [socket, addMessage]);
-
-    const sendMessage = async (e) => {
-        e.preventDefault();
-        // TODO: Check if this message is already in existing messages on which are still avialable to respond
-        await fetchTrustValue();
-        const msgStruct = JSON.stringify({
-            message: message,
-            type: 1, // 1 for yes and 0 for no
-            coordinates: location,
-            numberOfVehicles: users.length,
-            vPublicAddress: sessionStorage.getItem("pK"),
-        });
-        const messageHash = EthCrypto.hash.keccak256(msgStruct);
-        const sk = sessionStorage.getItem("sK");
-        const sPK = sessionStorage.getItem("sPK");
-        const signature = EthCrypto.sign(sk, messageHash);
-        const encrypted = await EthCrypto.encryptWithPublicKey(sPK, msgStruct);
-        const packet = { cipher: encrypted, sign: signature };
-        socket.emit("sendMessage", JSON.stringify(packet), () => null);
-        const key = JSON.stringify({
-            location: location,
-            message: message,
-        });
-        addMessage(
-            JSON.parse(msgStruct),
-            sessionStorage.getItem("pK"),
-            getCurrentTime()
-        );
-        setOwn((prevOwn) => {
-            prevOwn.add(key);
-            return prevOwn;
-        });
-        setTimeout(() => {
-            setOwn((prevOwn) => {
-                // console.log(prevOwn);
-                if (prevOwn.has(key)) prevOwn.delete(key);
-                // console.log("AFter Remove", prevOwn);
-                return prevOwn;
-            });
-        }, 40000);
-        setMessage("");
-    };
 
     return (
         <>
@@ -272,43 +260,12 @@ function VChat() {
                             messages.length > 0 &&
                             messages.map(({ struct, createdAt, user }, idx) => (
                                 <Message
-                                    updateResponse={HandleResponse}
                                     struct={struct}
                                     createdAt={createdAt}
                                     user={user}
                                     key={idx}
-                                    idx={idx}
-                                    setTemp={setTemp}
                                 />
                             ))}
-                    </div>
-
-                    <div className="compose">
-                        <form id="message-form" onSubmit={sendMessage}>
-                            <FormControl className={classes.formControl}>
-                                <InputLabel id="demo-simple-select-label">
-                                    Select Message
-                                </InputLabel>
-                                <Select
-                                    labelId="demo-simple-select-label"
-                                    id="demo-simple-select"
-                                    value={message}
-                                    required
-                                    onChange={(e) => setMessage(e.target.value)}
-                                >
-                                    {rsuMessages.map((message, idx) => (
-                                        <MenuItem
-                                            key={idx}
-                                            idx={idx}
-                                            value={message}
-                                        >
-                                            {message}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <Button type="submit">Send Message</Button>
-                        </form>
                     </div>
                 </div>
             </div>

@@ -80,8 +80,8 @@ function AdminPage() {
 
     const openTabs = async (e) => {
         for (let key of credentials) {
-            const pk = await EthCrypto.publicKeyByPrivateKey(key);
-            const addr = await EthCrypto.publicKey.toAddress(pk);
+            const pk = EthCrypto.publicKeyByPrivateKey(key);
+            const addr = EthCrypto.publicKey.toAddress(pk);
             await contract.addVehicle(addr);
             const data = {
                 sk: key,
