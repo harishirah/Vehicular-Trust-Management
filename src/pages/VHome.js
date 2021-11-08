@@ -14,9 +14,13 @@ function VHome() {
     const history = useHistory();
     useEffect(() => {
         const qString = window.location.search;
-        const { sk, prob, type } = queryString.parse(qString);
+        const { sk, prob, type, duration } = queryString.parse(qString);
         sessionStorage.setItem("prob", prob);
         sessionStorage.setItem("type", type);
+        sessionStorage.setItem(
+            "time",
+            Date.now() + (Number(duration) + 1) * 60 * 1000
+        );
         const location = randomPoint(1000);
         const pos = location;
         pos.latitude = Math.round(pos.latitude * 100) / 100;

@@ -57,19 +57,45 @@ contract RSU {
         sessionStart = 0; // Session Start Time at Contract Initialisation
 		/* vehicle[0] is dummy as any invalid message points to index = 0 */
 		vehicles.push(Vehicle(msg.sender, 0, true));
-        messageIds["traffic jam"] = 1;
-        msgs.push("traffic jam");
-        messageIds["accident"] = 2;
-        msgs.push("accident");
-        messageIds["construction work"] = 3;
-        msgs.push("construction work");
-        messageIds["road damaged"] = 4;
-        msgs.push("road damaged");
-        messageIds["safe"] = 5;
-        msgs.push("safe");
-        messageIds["red light"] = 6;
-        msgs.push("red light");
-        numberOfMessages = 7;
+        messageIds["event 1"] = 1;
+        msgs.push("event 1");
+        messageIds["event 2"] = 2;
+        msgs.push("event 2");
+        messageIds["event 3"] = 3;
+        msgs.push("event 3");
+        messageIds["event 4"] = 4;
+        msgs.push("event 4");
+        messageIds["event 5"] = 5;
+        msgs.push("event 5");
+        messageIds["event 6"] = 6;
+        msgs.push("event 6");
+        messageIds["event 7"] = 7;
+        msgs.push("event 7");
+        messageIds["event 8"] = 8;
+        msgs.push("event 8");
+        messageIds["event 9"] = 9;
+        msgs.push("event 9");
+        messageIds["event 10"] = 10;
+        msgs.push("event 10");
+        messageIds["event 11"] = 11;
+        msgs.push("event 11");
+        messageIds["event 12"] = 12;
+        msgs.push("event 12");
+        messageIds["event 13"] = 13;
+        msgs.push("event 13");
+        messageIds["event 14"] = 14;
+        msgs.push("event 14");
+        messageIds["event 15"] = 15;
+        msgs.push("event 15");
+        messageIds["event 16"] = 16;
+        msgs.push("event 16");
+        messageIds["event 17"] = 17;
+        msgs.push("event 17");
+        messageIds["event 18"] = 18;
+        msgs.push("event 18");
+        messageIds["event 19"] = 19;
+        msgs.push("event 19");
+        numberOfMessages = 20;
     }
     
 	/* Get Functions (No Gas Fees) */

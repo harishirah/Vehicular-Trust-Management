@@ -80,13 +80,20 @@ function AdminPage() {
 
     const openTabs = async (e) => {
         for (let key of credentials) {
-            const pk = EthCrypto.publicKeyByPrivateKey(key);
-            const addr = EthCrypto.publicKey.toAddress(pk);
-            await contract.addVehicle(addr);
+            // const pk = EthCrypto.publicKeyByPrivateKey(key);
+            // const addr = EthCrypto.publicKey.toAddress(pk);
+            // await contract.addVehicle(addr);
+            var yesProb;
+            if (Math.random() >= prob) {
+                yesProb = 0.6 + Math.random() * 0.4;
+            } else {
+                yesProb = 0.4 - Math.random() * 0.4;
+            }
             const data = {
                 sk: key,
-                prob,
+                prob: yesProb,
                 type: Math.random() < officialProb,
+                duration: 10, // simulation duration iN minutes
             };
             window.open(`http://localhost:3000/vehicle?${encodeQuery(data)}`);
         }
@@ -124,10 +131,10 @@ function AdminPage() {
                 </Button>
             </div>
             <div style={{ margin: "50px 0" }}>
-                <p>Probability of Yes</p>
+                <p>Probability of Malicious Vehicle</p>
                 <input
                     type="number"
-                    title="Probability of Yes"
+                    title="Probability of Malicious Vehicle"
                     id="rate"
                     value={prob}
                     min="0.00"
