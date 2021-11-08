@@ -77,7 +77,7 @@ function VChat() {
             await fetchTrustValue();
             const msgStruct = JSON.stringify({
                 message: rsuMessages[idx],
-                type: 1, // 1 for yes and 0 for no
+                type: Number(sessionStorage.getItem("prob")) > 0.5 ? 1 : 0, // 1 for yes and 0 for no
                 coordinates: location,
                 numberOfVehicles: users.length,
                 vPublicAddress: sessionStorage.getItem("pK"),
