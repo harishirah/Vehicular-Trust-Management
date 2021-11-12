@@ -19,6 +19,13 @@ const calculateCredibility = (location, tValueFrac) => {
     return alpha * distPortion + beta * tValueFrac;
 };
 
+const isTransactionMined = async (transactionHash) => {
+    const txReceipt = await provider.getTransactionReceipt(transactionHash);
+    if (txReceipt && txReceipt.blockNumber) {
+        return txReceipt;
+    }
+};
+
 export const evaluateRatings = async (batch, key) => {
     if (batch.hasOwnProperty(key) === false) return;
     // console.log("hello wrold");
@@ -84,11 +91,18 @@ export const evaluateRatings = async (batch, key) => {
     // console.log("Event Hash", eventHash);
     // console.log("message", message);
     console.log("Ratings", ratings);
+    while (sessionStorage.getItem("hash")) {
+        var x = sessionStorage.getItem("hash");
+        await isTransactionMined(x);
+        if (x === sessionStorage.getItem("hash"))
+            sessionStorage.removeItem("hash");
+    }
     const transaction = await contract.sendRatings(
         ratings,
         eventHash,
         message,
         new Date().getTime()
     );
+    sessionStorage.setItem("hash", transaction.hash);
     await transaction.wait();
 };

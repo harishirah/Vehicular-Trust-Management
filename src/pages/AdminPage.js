@@ -80,9 +80,9 @@ function AdminPage() {
 
     const openTabs = async (e) => {
         for (let key of credentials) {
-            // const pk = EthCrypto.publicKeyByPrivateKey(key);
-            // const addr = EthCrypto.publicKey.toAddress(pk);
-            // await contract.addVehicle(addr);
+            const pk = EthCrypto.publicKeyByPrivateKey(key);
+            const addr = EthCrypto.publicKey.toAddress(pk);
+            await contract.addVehicle(addr);
             var yesProb;
             if (Math.random() >= prob) {
                 yesProb = 0.6 + Math.random() * 0.4;

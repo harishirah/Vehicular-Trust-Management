@@ -153,7 +153,7 @@ contract RSU {
     function addVehicle(address _addr) public onlyAdmin {
         require(vehicleRegistered[_addr] == false, "Vehicle Already Registered!!");
         vehicleRegistered[_addr] = true;
-        vehicles.push(Vehicle(_addr, 1000, false));
+        vehicles.push(Vehicle(_addr, 60, false));
         vIds[_addr] = vehicles.length - 1;
     }
     
@@ -175,7 +175,7 @@ contract RSU {
                     pos+=sessionStorage[sessionEvents[i]][j].rating;
                 }
             }
-            int offset=(500*(pos*pos*pos-neg*neg*neg))/((pos*pos+neg*neg)*(pos+neg));
+            int offset=(16*(pos*pos*pos-neg*neg*neg))/((pos*pos+neg*neg)*(pos+neg));
             for(uint j=0;j<sessionStorage[sessionEvents[i]].length;j++){
                 if(sessionStorage[sessionEvents[i]][j].rating<=0){
                     vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue-=offset;
@@ -186,8 +186,8 @@ contract RSU {
                 }else{
                     vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue+=offset;
                     // Check For Inflation
-                    if(vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue > 1500) {
-                        vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue = 1500;
+                    if(vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue > 100) {
+                        vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue = 100;
                     }
                 }
             }
