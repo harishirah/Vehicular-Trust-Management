@@ -60,13 +60,24 @@ function VChat() {
 
     useEffect(() => {
         const sendMessage = async () => {
+            if (Number(sessionStorage.getItem("time")) < Date.now()) {
+                const Trust = await fetchTrustValue();
+                socket.emit(
+                    "summary",
+                    JSON.stringify({
+                        trust: Trust,
+                        prob: sessionStorage.getItem("prob"),
+                    }),
+                    () => null
+                );
+                window.close();
+            }
             const idx = Math.floor(Math.random() * rsuMessages.length);
-            console.log(idx);
             console.log(rsuMessages[idx]);
             await fetchTrustValue();
             const msgStruct = JSON.stringify({
                 message: rsuMessages[idx],
-                type: 1, // 1 for yes and 0 for no
+                type: Number(sessionStorage.getItem("prob")) > 0.5 ? 1 : 0, // 1 for yes and 0 for no
                 coordinates: location,
                 numberOfVehicles: users.length,
                 vPublicAddress: sessionStorage.getItem("pK"),
@@ -124,9 +135,18 @@ function VChat() {
         try {
             const data = await contract.getTrustValue(trustAddr);
             console.log("Trust Value", data.toNumber());
+            return data.toNumber();
         } catch (err) {
-            window.close();
             console.log(err);
+            socket.emit(
+                "summary",
+                JSON.stringify({
+                    trust: 0,
+                    prob: sessionStorage.getItem("prob"),
+                }),
+                () => null
+            );
+            window.close();
         }
     };
     useEffect(() => {
@@ -169,7 +189,7 @@ function VChat() {
             msgStruct["status"] = 2; // 1 for mutable, 2 freezed
             if (Math.random() >= 0.6) msgStruct["response"] = 0;
             // 0 for don't know, 1 for yes and 2 for No
-            else if (Math.random() >= sessionStorage.getItem("prob"))
+            else if (Math.random() >= Number(sessionStorage.getItem("prob")))
                 msgStruct["response"] = 2;
             else msgStruct["response"] = 1;
             if (msgStruct["response"]) {
