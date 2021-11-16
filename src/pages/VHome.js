@@ -14,13 +14,20 @@ function VHome() {
     const history = useHistory();
     useEffect(() => {
         const qString = window.location.search;
-        const { sk, prob, type } = queryString.parse(qString);
+        const { sk, prob, type, duration } = queryString.parse(qString);
         sessionStorage.setItem("prob", prob);
         sessionStorage.setItem("type", type);
+        sessionStorage.setItem("crash", 0);
+        sessionStorage.setItem(
+            "time",
+            Date.now() + (Number(duration) + 1) * 60 * 1000
+        );
         const location = randomPoint(1000);
         const pos = location;
-        pos.latitude = Math.round(pos.latitude * 100) / 100;
-        pos.longitude = Math.round(pos.longitude * 100) / 100;
+        pos.latitude = Math.round(pos.latitude * 1000) / 1000;
+        pos.longitude = Math.round(pos.longitude * 1000) / 1000;
+        // console.log(location);
+        console.log(pos);
         setLocation(pos);
         joinRoom(sk, location);
     }, [socket]);

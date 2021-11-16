@@ -57,19 +57,45 @@ contract RSU {
         sessionStart = 0; // Session Start Time at Contract Initialisation
 		/* vehicle[0] is dummy as any invalid message points to index = 0 */
 		vehicles.push(Vehicle(msg.sender, 0, true));
-        messageIds["traffic jam"] = 1;
-        msgs.push("traffic jam");
-        messageIds["accident"] = 2;
-        msgs.push("accident");
-        messageIds["construction work"] = 3;
-        msgs.push("construction work");
-        messageIds["road damaged"] = 4;
-        msgs.push("road damaged");
-        messageIds["safe"] = 5;
-        msgs.push("safe");
-        messageIds["red light"] = 6;
-        msgs.push("red light");
-        numberOfMessages = 7;
+        messageIds["event1"] = 1;
+        msgs.push("event1");
+        messageIds["event2"] = 2;
+        msgs.push("event2");
+        messageIds["event3"] = 3;
+        msgs.push("event3");
+        messageIds["event4"] = 4;
+        msgs.push("event4");
+        messageIds["event5"] = 5;
+        msgs.push("event5");
+        messageIds["event6"] = 6;
+        msgs.push("event6");
+        messageIds["event7"] = 7;
+        msgs.push("event7");
+        messageIds["event8"] = 8;
+        msgs.push("event8");
+        messageIds["event9"] = 9;
+        msgs.push("event9");
+        messageIds["event10"] = 10;
+        msgs.push("event10");
+        messageIds["event11"] = 11;
+        msgs.push("event11");
+        messageIds["event12"] = 12;
+        msgs.push("event12");
+        messageIds["event13"] = 13;
+        msgs.push("event13");
+        messageIds["event14"] = 14;
+        msgs.push("event14");
+        messageIds["event15"] = 15;
+        msgs.push("event15");
+        messageIds["event16"] = 16;
+        msgs.push("event16");
+        messageIds["event17"] = 17;
+        msgs.push("event17");
+        messageIds["event18"] = 18;
+        msgs.push("event18");
+        messageIds["event19"] = 19;
+        msgs.push("event19");
+        numberOfMessages = 20;
     }
     
 	/* Get Functions (No Gas Fees) */
@@ -127,7 +153,7 @@ contract RSU {
     function addVehicle(address _addr) public onlyAdmin {
         require(vehicleRegistered[_addr] == false, "Vehicle Already Registered!!");
         vehicleRegistered[_addr] = true;
-        vehicles.push(Vehicle(_addr, 1000, false));
+        vehicles.push(Vehicle(_addr, 60, false));
         vIds[_addr] = vehicles.length - 1;
     }
     
@@ -149,7 +175,7 @@ contract RSU {
                     pos+=sessionStorage[sessionEvents[i]][j].rating;
                 }
             }
-            int offset=(500*(pos*pos*pos-neg*neg*neg))/((pos*pos+neg*neg)*(pos+neg));
+            int offset=(4*(pos*pos*pos-neg*neg*neg))/((pos*pos+neg*neg)*(pos+neg));
             for(uint j=0;j<sessionStorage[sessionEvents[i]].length;j++){
                 if(sessionStorage[sessionEvents[i]][j].rating<=0){
                     vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue-=offset;
@@ -160,8 +186,8 @@ contract RSU {
                 }else{
                     vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue+=offset;
                     // Check For Inflation
-                    if(vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue > 1500) {
-                        vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue = 1500;
+                    if(vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue > 100) {
+                        vehicles[vIds[sessionStorage[sessionEvents[i]][j].addr]].trustValue = 100;
                     }
                 }
             }

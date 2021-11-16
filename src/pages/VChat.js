@@ -44,9 +44,8 @@ const useStyles = makeStyles((theme) => ({
 function VChat() {
     const { room } = useParams();
     const socket = useSocket();
-    const classes = useStyles();
     const chatRef = useRef(null);
-    const { messages, addMessage, updateStatus, updateResponse } = useChat();
+    const { messages, addMessage } = useChat();
     const { messages: rsuMessages, location } = useContext(MainContext);
     // const { getCurrentLocation } = useLocation();
     const [temp, setTemp] = useState("");
@@ -60,13 +59,25 @@ function VChat() {
 
     useEffect(() => {
         const sendMessage = async () => {
+            if (Number(sessionStorage.getItem("time")) < Date.now()) {
+                const Trust = await fetchTrustValue();
+                socket.emit(
+                    "summary",
+                    JSON.stringify({
+                        trust: Trust,
+                        prob: sessionStorage.getItem("prob"),
+                        crash: sessionStorage.getItem("crash"),
+                    }),
+                    () => null
+                );
+                window.close();
+            }
             const idx = Math.floor(Math.random() * rsuMessages.length);
-            console.log(idx);
-            console.log(rsuMessages[idx]);
+            // console.log("Mine", rsuMessages[idx]);
             await fetchTrustValue();
             const msgStruct = JSON.stringify({
                 message: rsuMessages[idx],
-                type: 1, // 1 for yes and 0 for no
+                type: Number(sessionStorage.getItem("prob")) > 0.5 ? 1 : 0, // 1 for yes and 0 for no
                 coordinates: location,
                 numberOfVehicles: users.length,
                 vPublicAddress: sessionStorage.getItem("pK"),
@@ -81,10 +92,14 @@ function VChat() {
             );
             const packet = { cipher: encrypted, sign: signature };
             socket.emit("sendMessage", JSON.stringify(packet), () => null);
-            const key = JSON.stringify({
-                location: location,
-                message: message,
-            });
+
+            const key =
+                rsuMessages[idx] +
+                "@" +
+                location.latitude +
+                "," +
+                location.longitude +
+                "";
             addMessage(
                 JSON.parse(msgStruct),
                 sessionStorage.getItem("pK"),
@@ -95,13 +110,14 @@ function VChat() {
                 return prevOwn;
             });
             setTimeout(() => {
+                // console.log("Removing key", key);
                 setOwn((prevOwn) => {
                     // console.log(prevOwn);
                     if (prevOwn.has(key)) prevOwn.delete(key);
                     // console.log("AFter Remove", prevOwn);
                     return prevOwn;
                 });
-            }, 40000);
+            }, 35000);
             setMessage("");
         };
         let timer = setInterval(sendMessage, 60000);
@@ -123,10 +139,20 @@ function VChat() {
         );
         try {
             const data = await contract.getTrustValue(trustAddr);
-            console.log("Trust Value", data.toNumber());
+            // console.log("Trust Value", data.toNumber());
+            return data.toNumber();
         } catch (err) {
-            window.close();
             console.log(err);
+            socket.emit(
+                "summary",
+                JSON.stringify({
+                    trust: 0,
+                    crash: sessionStorage.getItem("crash"),
+                    prob: sessionStorage.getItem("prob"),
+                }),
+                () => null
+            );
+            window.close();
         }
     };
     useEffect(() => {
@@ -144,18 +170,22 @@ function VChat() {
             if (signer !== msg.username) return;
             const msgStruct = JSON.parse(data);
 
-            const key = JSON.stringify({
-                location: msgStruct.coordinates,
-                message: msgStruct.message,
-            });
+            const key =
+                msgStruct.message +
+                "@" +
+                location.latitude +
+                "," +
+                location.longitude;
 
             // console.log("OWN", own);
             // console.log("KEY", key);
             if (own.has(key)) return;
             // console.log("BACTH", batch);
             if (batch.hasOwnProperty(key)) {
+                // console.log("Has it");
                 setBatch((prevBatch) => {
                     prevBatch[key][msgStruct.vPublicAddress] = msgStruct.type;
+                    // console.log(prevBatch);
                     return prevBatch;
                 });
                 return;
@@ -166,13 +196,11 @@ function VChat() {
                 prevBatch[key] = init;
                 return prevBatch;
             });
-            msgStruct["status"] = 2; // 1 for mutable, 2 freezed
-            if (Math.random() >= 0.6) msgStruct["response"] = 0;
-            // 0 for don't know, 1 for yes and 2 for No
-            else if (Math.random() >= sessionStorage.getItem("prob"))
-                msgStruct["response"] = 2;
-            else msgStruct["response"] = 1;
-            if (msgStruct["response"]) {
+            if (Math.random() <= 0.6) {
+                if (Math.random() >= Number(sessionStorage.getItem("prob")))
+                    msgStruct["type"] = 0;
+                else msgStruct["type"] = 1;
+                msgStruct.vPublicAddress = sessionStorage.getItem("pK");
                 const Hsh = EthCrypto.hash.keccak256(JSON.stringify(msgStruct));
                 const signe = EthCrypto.sign(sk, Hsh);
                 const encryp = await EthCrypto.encryptWithPublicKey(
@@ -187,11 +215,9 @@ function VChat() {
             t1_id = setTimeout(async () => {
                 setTemp(idx);
                 // console.log(msgRef.current, idx);
-                if (msgRef.current[idx].struct.response === 0) {
-                    //Handle sending to RSU part
-                    await evaluateRatings(batch, key);
-                    console.log("sent to RSU");
-                }
+                //Handle sending to RSU part
+                await evaluateRatings(batch, key);
+                console.log("sent to RSU");
                 if (batch.hasOwnProperty(key)) {
                     setBatch((prevBatch) => {
                         delete prevBatch[key];
