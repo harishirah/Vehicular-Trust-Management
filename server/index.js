@@ -85,7 +85,7 @@ io.on("connection", (socket) => {
             "summary.txt",
             `${new Date().toLocaleString()}:\t Nature:${data.prob} \t Trust:${
                 data.trust
-            }`,
+            }\tCrash: ${data.crash}\n`,
             function (err) {
                 if (err) {
                     return console.log(err);
